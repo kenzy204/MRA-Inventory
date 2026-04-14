@@ -39,36 +39,36 @@ function ProtectedLayout() {
   function getPageMeta() {
     if (location.pathname === '/') {
       return {
-        title: 'Inventory Overview',
-        subtitle: 'Manage your premium e-bike collection with clarity and speed.'
+        title: 'Voorraadoverzicht',
+        subtitle: 'Beheer je premium e-bike collectie snel, duidelijk en professioneel.'
       };
     }
 
     if (location.pathname === '/bikes/new') {
       return {
-        title: 'Add New Bike',
-        subtitle: 'Create a new listing with specifications, media, and Shopify sync.'
+        title: 'Nieuwe fiets toevoegen',
+        subtitle: 'Maak een nieuwe fiets aan met specificaties, media en Shopify-sync.'
       };
     }
 
     if (location.pathname.includes('/bikes/') && location.pathname.includes('/edit')) {
       return {
-        title: 'Edit Bike',
-        subtitle: 'Update specifications, images, and synchronization details.'
+        title: 'Fiets bewerken',
+        subtitle: 'Werk specificaties, afbeeldingen en synchronisatiegegevens bij.'
       };
     }
 
     if (location.pathname === '/settings') {
       return {
-        title: 'Shopify Settings',
-        subtitle: 'Control store connection, credentials, and sync readiness.'
+        title: 'Shopify-instellingen',
+        subtitle: 'Beheer winkelkoppeling, toegangsgegevens en synchronisatie.'
       };
     }
 
     if (location.pathname === '/sync-logs') {
       return {
-        title: 'Sync Logs',
-        subtitle: 'Track recent sync activity and troubleshoot issues quickly.'
+        title: 'Synchronisatielogs',
+        subtitle: 'Bekijk recente synchronisaties en los fouten sneller op.'
       };
     }
 
@@ -87,14 +87,14 @@ function ProtectedLayout() {
           <div className="brand-mark">M</div>
           <div>
             <h1 className="brand-title">MRA Inventory</h1>
-            <div className="brand-subtitle">Luxury E-Bike Management</div>
+            <div className="brand-subtitle">Luxe E-Bike Beheer</div>
           </div>
         </div>
 
         <div className="nav-section">
           <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <span className="nav-icon">◻</span>
-            <span>Inventory</span>
+            <span>Voorraad</span>
           </NavLink>
 
           <NavLink
@@ -102,7 +102,7 @@ function ProtectedLayout() {
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
             <span className="nav-icon">＋</span>
-            <span>Add Bike</span>
+            <span>Nieuwe fiets</span>
           </NavLink>
 
           <NavLink
@@ -124,10 +124,10 @@ function ProtectedLayout() {
 
         <div className="sidebar-footer">
           <div className="sidebar-live-card">
-            <div className="sidebar-live-title">Workspace</div>
-            <div className="sidebar-live-value">Connected & ready</div>
+            <div className="sidebar-live-title">Werkruimte</div>
+            <div className="sidebar-live-value">Verbonden & klaar</div>
             <div className="sidebar-live-note">
-              Maintain bikes, media, and Shopify sync from one place.
+              Beheer fietsen, media en Shopify-sync op één centrale plek.
             </div>
           </div>
         </div>
@@ -138,7 +138,7 @@ function ProtectedLayout() {
           className="mobile-overlay"
           type="button"
           onClick={() => setMobileNavOpen(false)}
-          aria-label="Close menu"
+          aria-label="Menu sluiten"
         />
       )}
 
@@ -162,11 +162,11 @@ function ProtectedLayout() {
           <div className="topbar-right">
             {location.pathname === '/' && (
               <button className="primary-btn" onClick={() => navigate('/bikes/new')}>
-                + Add New Bike
+                + Nieuwe fiets
               </button>
             )}
             <button className="secondary-btn" type="button" onClick={logout}>
-              Logout
+              Uitloggen
             </button>
           </div>
         </header>
