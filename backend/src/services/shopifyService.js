@@ -47,7 +47,37 @@ async function shopifyGraphQL(query, variables = {}) {
   return response.data.data;
 }
 
-function pushMetafield(metafields, key, type, value) {
+// function pushMetafield(metafields, key, type, value) {
+//   if (value === undefined || value === null || value === '') return;
+
+//   metafields.push({
+//     namespace: 'custom',
+//     key,
+//     type,
+//     value: String(value)
+//   });
+// }
+
+// function pushBooleanMetafield(metafields, key, value) {
+//   if (value === undefined || value === null || value === '') return;
+
+//   let normalized = value;
+
+//   if (typeof value === 'string') {
+//     const lower = value.toLowerCase().trim();
+
+//     if (['ja', 'yes', 'true', '1'].includes(lower)) normalized = true;
+//     else if (['nee', 'no', 'false', '0'].includes(lower)) normalized = false;
+//   }
+
+//   metafields.push({
+//     namespace: 'custom',
+//     key,
+//     type: 'boolean',
+//     value: normalized ? 'true' : 'false'
+//   });
+// }
+function pushMetafield(metafields, key, value, type = 'single_line_text_field') {
   if (value === undefined || value === null || value === '') return;
 
   metafields.push({
@@ -58,90 +88,170 @@ function pushMetafield(metafields, key, type, value) {
   });
 }
 
-function pushBooleanMetafield(metafields, key, value) {
-  if (value === undefined || value === null || value === '') return;
+function normalizeBooleanToText(value) {
+  if (value === undefined || value === null || value === '') return null;
 
-  let normalized = value;
-
-  if (typeof value === 'string') {
-    const lower = value.toLowerCase().trim();
-
-    if (['ja', 'yes', 'true', '1'].includes(lower)) normalized = true;
-    else if (['nee', 'no', 'false', '0'].includes(lower)) normalized = false;
+  if (typeof value === 'boolean') {
+    return value ? 'ja' : 'nee';
   }
 
-  metafields.push({
-    namespace: 'custom',
-    key,
-    type: 'boolean',
-    value: normalized ? 'true' : 'false'
-  });
-}
+  const lower = String(value).toLowerCase().trim();
 
+  if (['true', '1', 'yes', 'ja'].includes(lower)) return 'ja';
+  if (['false', '0', 'no', 'nee'].includes(lower)) return 'nee';
+
+  return String(value);
+}
+// function buildProductMetafields(bike) {
+//   const metafields = [];
+
+//   // Aandrijving
+//   pushMetafield(metafields, 'merk', 'single_line_text_field', bike.merk);
+//   pushMetafield(metafields, 'type', 'single_line_text_field', bike.type);
+//   pushMetafield(metafields, 'positie', 'single_line_text_field', bike.positie);
+//   pushMetafield(metafields, 'koppel_motor_nm', 'number_decimal', bike.koppel_motor_nm);
+//   pushMetafield(metafields, 'type-aandrijving', 'multi_line_text_field', bike.type_aandrijving);
+
+//   // Accu
+//   pushMetafield(metafields, 'accu_capaciteit_wh', 'number_integer', bike.accu_capaciteit_wh);
+//   pushMetafield(metafields, 'accu_positie', 'single_line_text_field', bike.accu_positie);
+//   pushBooleanMetafield(metafields, 'accu_uitneembaar', bike.accu_uitneembaar);
+//   pushMetafield(metafields, 'accu', 'multi_line_text_field', bike.accu);
+
+//   // Rem
+//   pushMetafield(metafields, 'type-rem', 'single_line_text_field', bike.type_remmen);
+//   pushMetafield(metafields, 'merk_remmen', 'single_line_text_field', bike.merk_remmen);
+//   pushMetafield(metafields, 'remmen', 'multi_line_text_field', bike.remmen);
+
+//   // Display
+//   pushMetafield(metafields, 'display_merk', 'single_line_text_field', bike.display_merk);
+//   pushMetafield(metafields, 'display_type', 'single_line_text_field', bike.display_type);
+//   pushMetafield(metafields, 'display', 'multi_line_text_field', bike.display);
+
+//   // Vering
+//   pushBooleanMetafield(metafields, 'voorvork_vering_aanwezig', bike.voorvork_vering_aanwezig);
+//   pushMetafield(metafields, 'voorvork_vering_type', 'single_line_text_field', bike.voorvork_vering_type);
+//   pushBooleanMetafield(metafields, 'verende_zadelpen_aanwezig', bike.verende_zadelpen_aanwezig);
+//   pushMetafield(metafields, 'verende_zadelpen_type', 'single_line_text_field', bike.verende_zadelpen_type);
+//   pushBooleanMetafield(metafields, 'zadelvering', bike.zadelvering);
+//   pushMetafield(metafields, 'vering', 'multi_line_text_field', bike.vering);
+
+//   // Banden
+//   pushMetafield(metafields, 'bandmerk', 'single_line_text_field', bike.bandmerk);
+//   pushMetafield(metafields, 'bandmodel', 'single_line_text_field', bike.bandmodel);
+//   pushBooleanMetafield(metafields, 'anti_lek_banden', bike.anti_lek_banden);
+//   pushMetafield(metafields, 'bandbreedte', 'single_line_text_field', bike.bandbreedte);
+//   pushMetafield(metafields, 'banden', 'multi_line_text_field', bike.banden);
+
+//   // Frame
+//   pushMetafield(metafields, 'frame_size', 'number_decimal', bike.frame_size);
+//   pushMetafield(metafields, 'type_frame', 'single_line_text_field', bike.type_frame);
+//   pushMetafield(metafields, 'framemateriaal', 'single_line_text_field', bike.framemateriaal);
+//   pushMetafield(metafields, 'frame', 'multi_line_text_field', bike.frame);
+
+//   // Wielen
+//   pushMetafield(metafields, 'wielmaat', 'single_line_text_field', bike.wielmaat);
+
+//   // Levering
+//   pushMetafield(metafields, 'aantal_sleutels', 'number_integer', bike.aantal_sleutels);
+//   pushBooleanMetafield(metafields, 'fabrieksgarantie', bike.fabrieksgarantie);
+
+//   // Gebruik
+//   pushMetafield(metafields, 'kilometerstand', 'number_integer', bike.kilometerstand);
+//   pushMetafield(metafields, 'km_s', 'single_line_text_field', bike.km_s);
+
+//   // Staat van de fiets
+//   pushMetafield(metafields, 'condition', 'single_line_text_field', bike.condition);
+
+//   return metafields;
+// }
 function buildProductMetafields(bike) {
   const metafields = [];
 
   // Aandrijving
-  pushMetafield(metafields, 'merk', 'single_line_text_field', bike.merk);
-  pushMetafield(metafields, 'type', 'single_line_text_field', bike.type);
-  pushMetafield(metafields, 'positie', 'single_line_text_field', bike.positie);
-  pushMetafield(metafields, 'koppel_motor_nm', 'number_decimal', bike.koppel_motor_nm);
-  pushMetafield(metafields, 'type-aandrijving', 'multi_line_text_field', bike.type_aandrijving);
+  pushMetafield(metafields, 'merk', bike.merk);
+  pushMetafield(metafields, 'type', bike.type);
+  pushMetafield(metafields, 'positie', bike.positie);
+  pushMetafield(metafields, 'koppel_motor_nm', bike.koppel_motor_nm, 'number_decimal');
+  pushMetafield(metafields, 'type-aandrijving', bike.type_aandrijving);
 
   // Accu
-  pushMetafield(metafields, 'accu_capaciteit_wh', 'number_integer', bike.accu_capaciteit_wh);
-  pushMetafield(metafields, 'accu_positie', 'single_line_text_field', bike.accu_positie);
-  pushBooleanMetafield(metafields, 'accu_uitneembaar', bike.accu_uitneembaar);
-  pushMetafield(metafields, 'accu', 'multi_line_text_field', bike.accu);
+  pushMetafield(metafields, 'accu_capaciteit_wh', bike.accu_capaciteit_wh);
+  pushMetafield(metafields, 'accu_positie', bike.accu_positie);
+  pushMetafield(
+    metafields,
+    'accu_uitneembaar',
+    normalizeBooleanToText(bike.accu_uitneembaar)
+  );
+  pushMetafield(metafields, 'accu', bike.accu);
 
   // Rem
-  pushMetafield(metafields, 'type-rem', 'single_line_text_field', bike.type_remmen);
-  pushMetafield(metafields, 'merk_remmen', 'single_line_text_field', bike.merk_remmen);
-  pushMetafield(metafields, 'remmen', 'multi_line_text_field', bike.remmen);
+  pushMetafield(metafields, 'type-rem', bike.type_remmen);
+  pushMetafield(metafields, 'merk_remmen', bike.merk_remmen);
+  pushMetafield(metafields, 'remmen', bike.remmen);
 
   // Display
-  pushMetafield(metafields, 'display_merk', 'single_line_text_field', bike.display_merk);
-  pushMetafield(metafields, 'display_type', 'single_line_text_field', bike.display_type);
-  pushMetafield(metafields, 'display', 'multi_line_text_field', bike.display);
+  pushMetafield(metafields, 'display_merk', bike.display_merk);
+  pushMetafield(metafields, 'display_type', bike.display_type);
+  pushMetafield(metafields, 'display', bike.display);
 
   // Vering
-  pushBooleanMetafield(metafields, 'voorvork_vering_aanwezig', bike.voorvork_vering_aanwezig);
-  pushMetafield(metafields, 'voorvork_vering_type', 'single_line_text_field', bike.voorvork_vering_type);
-  pushBooleanMetafield(metafields, 'verende_zadelpen_aanwezig', bike.verende_zadelpen_aanwezig);
-  pushMetafield(metafields, 'verende_zadelpen_type', 'single_line_text_field', bike.verende_zadelpen_type);
-  pushBooleanMetafield(metafields, 'zadelvering', bike.zadelvering);
-  pushMetafield(metafields, 'vering', 'multi_line_text_field', bike.vering);
+  pushMetafield(
+    metafields,
+    'voorvork_vering_aanwezig',
+    normalizeBooleanToText(bike.voorvork_vering_aanwezig)
+  );
+  pushMetafield(metafields, 'voorvork_vering_type', bike.voorvork_vering_type);
+  pushMetafield(
+    metafields,
+    'verende_zadelpen_aanwezig',
+    normalizeBooleanToText(bike.verende_zadelpen_aanwezig)
+  );
+  pushMetafield(metafields, 'verende_zadelpen_type', bike.verende_zadelpen_type);
+  pushMetafield(
+    metafields,
+    'zadelvering',
+    normalizeBooleanToText(bike.zadelvering)
+  );
+  pushMetafield(metafields, 'vering', bike.vering);
 
   // Banden
-  pushMetafield(metafields, 'bandmerk', 'single_line_text_field', bike.bandmerk);
-  pushMetafield(metafields, 'bandmodel', 'single_line_text_field', bike.bandmodel);
-  pushBooleanMetafield(metafields, 'anti_lek_banden', bike.anti_lek_banden);
-  pushMetafield(metafields, 'bandbreedte', 'single_line_text_field', bike.bandbreedte);
-  pushMetafield(metafields, 'banden', 'multi_line_text_field', bike.banden);
+  pushMetafield(metafields, 'bandmerk', bike.bandmerk);
+  pushMetafield(metafields, 'bandmodel', bike.bandmodel);
+  pushMetafield(
+    metafields,
+    'anti_lek_banden',
+    normalizeBooleanToText(bike.anti_lek_banden)
+  );
+  pushMetafield(metafields, 'bandbreedte', bike.bandbreedte);
+  pushMetafield(metafields, 'banden', bike.banden);
 
   // Frame
-  pushMetafield(metafields, 'frame_size', 'number_decimal', bike.frame_size);
-  pushMetafield(metafields, 'type_frame', 'single_line_text_field', bike.type_frame);
-  pushMetafield(metafields, 'framemateriaal', 'single_line_text_field', bike.framemateriaal);
-  pushMetafield(metafields, 'frame', 'multi_line_text_field', bike.frame);
+  pushMetafield(metafields, 'frame_size', bike.frame_size);
+  pushMetafield(metafields, 'type_frame', bike.type_frame);
+  pushMetafield(metafields, 'framemateriaal', bike.framemateriaal);
+  pushMetafield(metafields, 'frame', bike.frame);
 
   // Wielen
-  pushMetafield(metafields, 'wielmaat', 'single_line_text_field', bike.wielmaat);
+  pushMetafield(metafields, 'wielmaat', bike.wielmaat);
 
   // Levering
-  pushMetafield(metafields, 'aantal_sleutels', 'number_integer', bike.aantal_sleutels);
-  pushBooleanMetafield(metafields, 'fabrieksgarantie', bike.fabrieksgarantie);
+  pushMetafield(metafields, 'aantal_sleutels', bike.aantal_sleutels);
+  pushMetafield(
+    metafields,
+    'fabrieksgarantie',
+    normalizeBooleanToText(bike.fabrieksgarantie)
+  );
 
   // Gebruik
-  pushMetafield(metafields, 'kilometerstand', 'number_integer', bike.kilometerstand);
-  pushMetafield(metafields, 'km_s', 'single_line_text_field', bike.km_s);
+  pushMetafield(metafields, 'kilometerstand', bike.kilometerstand);
+  pushMetafield(metafields, 'km_s', bike.km_s);
 
   // Staat van de fiets
-  pushMetafield(metafields, 'condition', 'single_line_text_field', bike.condition);
+  pushMetafield(metafields, 'condition', bike.condition);
 
   return metafields;
 }
-
 function buildProductTags(bike) {
   if (!bike.tags) return [];
 
