@@ -86,7 +86,7 @@
 // }
 
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const defaultState = {
   brand: '',
@@ -118,7 +118,7 @@ export default function BikeForm({
   bikeId
 }) {
   const [form, setForm] = useState({ ...defaultState, ...initialValues });
-  const [imageFile, setImageFile] = useState(null);
+  const [images, setImages] = useState([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -126,44 +126,90 @@ export default function BikeForm({
     setForm({ ...defaultState, ...initialValues });
   }, [initialValues]);
 
+  const previewUrls = useMemo(() => {
+    return images.map((file) => ({
+      file,
+      url: URL.createObjectURL(file)
+    }));
+  }, [images]);
+
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach((item) => URL.revokeObjectURL(item.url));
+    };
+  }, [previewUrls]);
+
   function handleChange(e) {
     const { name, value } = e.target;
+
     setForm((prev) => ({
       ...prev,
       [name]: value
     }));
   }
 
+  function handleImagesChange(e) {
+    const files = Array.from(e.target.files || []);
+    setImages(files);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
+
     try {
       await onSubmit({
         ...form,
         price: form.price === '' ? 0 : Number(form.price),
         stock: form.stock === '' ? 0 : Number(form.stock),
-        mileage: form.mileage === '' ? null : Number(form.mileage)
+        mileage: form.mileage === '' ? null : Number(form.mileage),
+        range_km: form.range_km === '' ? null : Number(form.range_km),
+        images
       });
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleUpload() {
-    if (!bikeId || !imageFile || !onImageUpload) return;
+  async function handleUploadAdditionalImages() {
+    if (!bikeId || images.length === 0 || !onImageUpload) return;
+
     setUploading(true);
+
     try {
-      await onImageUpload(bikeId, imageFile);
-      setImageFile(null);
-      alert('Image uploaded');
+      for (const file of images) {
+        await onImageUpload(bikeId, file);
+      }
+
+      setImages([]);
+      alert('Images uploaded');
     } finally {
       setUploading(false);
     }
   }
 
-  const images = initialValues?.images || [];
-  const mainImage = images[0];
-  const sideImages = images.slice(1, 3);
+  const existingImages = initialValues?.images || [];
+  const displayedImages =
+    previewUrls.length > 0
+      ? previewUrls.map((item) => ({ image_url: item.url, isPreview: true }))
+      : existingImages;
+
+  const mainImage = displayedImages[0];
+  const sideImages = displayedImages.slice(1, 3);
+
+  function renderImage(image, altText, placeholderText) {
+    if (!image) {
+      return <div className="asset-upload-box">{placeholderText}</div>;
+    }
+
+    const src = image.isPreview
+      ? image.image_url
+      : /^https?:\/\//i.test(image.image_url)
+      ? image.image_url
+      : `${import.meta.env.VITE_BACKEND_URL}${image.image_url}`;
+
+    return <img src={src} alt={altText} />;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="form-grid">
@@ -173,58 +219,50 @@ export default function BikeForm({
 
           <div className="asset-gallery">
             <div className="asset-main">
-              {mainImage ? (
-                <img
-                  src={`${import.meta.env.VITE_BACKEND_URL}${mainImage.image_url}`}
-                  alt="Bike main"
-                />
-              ) : (
-                <div className="asset-upload-box">Main Image Preview</div>
-              )}
+              {renderImage(mainImage, 'Bike main', 'Main Image Preview')}
             </div>
 
             <div className="asset-side">
-              {sideImages[0] ? (
-                <img
-                  src={`${import.meta.env.VITE_BACKEND_URL}${sideImages[0].image_url}`}
-                  alt="Bike side"
-                />
-              ) : (
-                <div className="asset-upload-box">Side Image</div>
-              )}
-
-              {sideImages[1] ? (
-                <img
-                  src={`${import.meta.env.VITE_BACKEND_URL}${sideImages[1].image_url}`}
-                  alt="Bike side"
-                />
-              ) : (
-                <div className="asset-upload-box">Add Media</div>
-              )}
+              {renderImage(sideImages[0], 'Bike side', 'Side Image')}
+              {renderImage(sideImages[1], 'Bike side', 'Add Media')}
             </div>
           </div>
 
-          {bikeId && (
-            <div style={{ marginTop: 18 }}>
-              <div className="dropzone">
-                <p style={{ marginTop: 0 }}>Drop additional images here or browse files</p>
-                <input
-                  type="file"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                />
+          <div style={{ marginTop: 18 }}>
+            <div className="dropzone">
+              <p style={{ marginTop: 0 }}>
+                {bikeId
+                  ? 'Select images to add or replace'
+                  : 'Select images before saving the bike'}
+              </p>
+
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImagesChange}
+              />
+
+              {images.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  {images.length} image(s) selected
+                </div>
+              )}
+
+              {bikeId && (
                 <div style={{ marginTop: 12 }}>
                   <button
                     type="button"
                     className="secondary-btn"
-                    onClick={handleUpload}
-                    disabled={!imageFile || uploading}
+                    onClick={handleUploadAdditionalImages}
+                    disabled={images.length === 0 || uploading}
                   >
-                    {uploading ? 'Uploading...' : 'Upload Image'}
+                    {uploading ? 'Uploading...' : 'Upload Additional Images'}
                   </button>
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="form-card">
@@ -384,6 +422,7 @@ export default function BikeForm({
               <input
                 className="input"
                 name="range_km"
+                type="number"
                 value={form.range_km ?? ''}
                 onChange={handleChange}
               />
