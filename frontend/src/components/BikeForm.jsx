@@ -354,7 +354,17 @@ export default function BikeForm({
             </div>
             <div className="field">
               <label>Accu positie</label>
-              <input className="input" name="accu_positie" value={form.accu_positie ?? ''} onChange={handleChange} />
+              <select
+                className="select"
+                name="accu_positie"
+                value={form.accu_positie ?? ''}
+                onChange={handleChange}
+              >
+                <option value="">Selecteer</option>
+                <option value="frame">frame</option>
+                <option value="bagagedrager">bagagedrager</option>
+                <option value="geïntegreerd">geïntegreerd</option>
+              </select>
             </div>
           </div>
 
@@ -373,7 +383,17 @@ export default function BikeForm({
           <div className="field-grid-2">
             <div className="field">
               <label>Type remmen</label>
-              <input className="input" name="type_remmen" value={form.type_remmen ?? ''} onChange={handleChange} />
+              <select
+                className="select"
+                name="type_remmen"
+                value={form.type_remmen ?? ''}
+                onChange={handleChange}
+              >
+                <option value="">Selecteer</option>
+                <option value="hydraulische schijf">hydraulische schijf</option>
+                <option value="mechanische schijf">mechanische schijf</option>
+                <option value="rollerbrake">rollerbrake</option>
+              </select>
             </div>
             <div className="field">
               <label>Merk remmen</label>
@@ -465,7 +485,17 @@ export default function BikeForm({
             {renderBooleanSelect('anti_lek_banden', 'Anti-lek banden')}
             <div className="field">
               <label>Bandbreedte</label>
-              <input className="input" name="bandbreedte" value={form.bandbreedte ?? ''} onChange={handleChange} />
+              <select
+                className="select"
+                name="bandbreedte"
+                value={form.bandbreedte ?? ''}
+                onChange={handleChange}
+              >
+                <option value="">Selecteer</option>
+                <option value="smal">smal</option>
+                <option value="normaal">normaal</option>
+                <option value="breed">breed</option>
+              </select>
             </div>
           </div>
 
@@ -492,19 +522,35 @@ export default function BikeForm({
             </div>
             <div className="field">
               <label>Type frame</label>
-              <input className="input" name="type_frame" value={form.type_frame ?? ''} onChange={handleChange} />
+              <select
+                className="select"
+                name="type_frame"
+                value={form.type_frame ?? ''}
+                onChange={handleChange}
+              >
+                <option value="">Selecteer</option>
+                <option value="lage instap">lage instap</option>
+                <option value="hoge instap">hoge instap</option>
+                <option value="heren">heren</option>
+                <option value="dames">dames</option>
+              </select>
             </div>
           </div>
 
           <div className="field-grid-2" style={{ marginTop: 14 }}>
             <div className="field">
               <label>Framemateriaal</label>
-              <input
-                className="input"
+              <select
+                className="select"
                 name="framemateriaal"
                 value={form.framemateriaal ?? ''}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Selecteer</option>
+                <option value="aluminium">aluminium</option>
+                <option value="staal">staal</option>
+                <option value="carbon">carbon</option>
+              </select>
             </div>
             <div className="field">
               <label>Frame</label>
