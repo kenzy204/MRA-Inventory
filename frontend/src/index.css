@@ -565,16 +565,18 @@ button {
 .asset-main img,
 .asset-side img {
   width: 100%;
-  height: 230px;
+  height: 110px;
   object-fit: cover;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1px solid var(--border);
 }
 
 .asset-side {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
 }
 
 .asset-upload-box {
