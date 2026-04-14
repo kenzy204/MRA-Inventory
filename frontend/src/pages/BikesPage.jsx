@@ -194,7 +194,7 @@ export default function BikesPage() {
 
               <tbody>
                 {filteredBikes.map((bike) => {
-                  const firstImage = bike.images?.[0]?.image_url;
+                 const firstImage = bike.first_image;
                   const displayTitle = bike.title || `${bike.brand || ''} ${bike.model || ''}`.trim();
 
                   return (
