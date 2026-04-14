@@ -146,7 +146,7 @@ export default function BikeForm({
       : existingImages;
 
   const mainImage = displayedImages[0];
-  const sideImages = displayedImages.slice(1, 3);
+const galleryImages = displayedImages.slice(1);
 
   function renderImage(image, altText, placeholderText) {
     if (!image) {
@@ -181,16 +181,33 @@ export default function BikeForm({
         <div className="form-card">
           <h3>Afbeeldingen</h3>
 
-          <div className="asset-gallery">
-            <div className="asset-main">
-              {renderImage(mainImage, 'Hoofdafbeelding fiets', 'Voorbeeld hoofdafbeelding')}
-            </div>
+       <div className="asset-gallery">
+  <div className="asset-main">
+    {renderImage(mainImage, 'Hoofdafbeelding fiets', 'Voorbeeld hoofdafbeelding')}
+  </div>
 
-            <div className="asset-side">
-              {renderImage(sideImages[0], 'Extra afbeelding fiets', 'Galerijafbeelding')}
-              {renderImage(sideImages[1], 'Extra afbeelding fiets', 'Media toevoegen')}
-            </div>
-          </div>
+  <div className="asset-side">
+    {galleryImages.length > 0 ? (
+      galleryImages.map((image, index) => {
+        const src = image.isPreview
+          ? image.image_url
+          : /^https?:\/\//i.test(image.image_url)
+          ? image.image_url
+          : `${import.meta.env.VITE_BACKEND_URL}${image.image_url}`;
+
+        return (
+          <img
+            key={index}
+            src={src}
+            alt={`Fiets afbeelding ${index + 2}`}
+          />
+        );
+      })
+    ) : (
+      <div className="asset-upload-box">Geen extra afbeeldingen</div>
+    )}
+  </div>
+</div>
 
           <div style={{ marginTop: 18 }}>
             <div className="dropzone">
