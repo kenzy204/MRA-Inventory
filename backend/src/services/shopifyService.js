@@ -1,237 +1,3 @@
-
-// const axios = require('axios');
-// const crypto = require('crypto');
-// const { getPool } = require('../config/db');
-
-// async function getSettings() {
-//   const pool = await getPool();
-//   const result = await pool.request().query('SELECT TOP 1 * FROM settings ORDER BY id ASC');
-//   const settings = result.recordset[0];
-
-//   if (!settings?.shopify_store_url || !settings?.shopify_access_token || !settings?.shopify_location_id) {
-//     throw new Error('Shopify settings missing');
-//   }
-
-//   return settings;
-// }
-
-// async function shopifyGraphQL(query, variables = {}) {
-//   const settings = await getSettings();
-
-//   const url = `https://${settings.shopify_store_url}/admin/api/${process.env.SHOPIFY_API_VERSION}/graphql.json`;
-
-//   const response = await axios.post(
-//     url,
-//     { query, variables },
-//     {
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'X-Shopify-Access-Token': settings.shopify_access_token
-//       }
-//     }
-//   );
-
-//   if (response.data.errors) {
-//     throw new Error(`Shopify GraphQL errors: ${JSON.stringify(response.data.errors)}`);
-//   }
-
-//   return response.data.data;
-// }
-
-// function buildProductMetafields(bike) {
-//   const metafields = [];
-
-//   if (bike.condition) {
-//     metafields.push({
-//       namespace: 'custom',
-//       key: 'condition',
-//       type: 'single_line_text_field',
-//       value: String(bike.condition)
-//     });
-//   }
-
-//   if (bike.motor_type) {
-//     metafields.push({
-//       namespace: 'custom',
-//       key: 'motor-type',
-//       type: 'single_line_text_field',
-//       value: String(bike.motor_type)
-//     });
-//   }
-
-//   if (bike.battery_capacity) {
-//     metafields.push({
-//       namespace: 'custom',
-//       key: 'battery',
-//       type: 'single_line_text_field',
-//       value: String(bike.battery_capacity)
-//     });
-//   }
-
-//   if (bike.frame_size) {
-//     metafields.push({
-//       namespace: 'custom',
-//       key: 'frame_size',
-//       type: 'single_line_text_field',
-//       value: String(bike.frame_size)
-//     });
-//   }
-
-//   return metafields;
-// }
-
-// function buildProductTags(bike) {
-//   if (!bike.tags) return [];
-
-//   if (Array.isArray(bike.tags)) {
-//     return bike.tags.map((t) => String(t).trim()).filter(Boolean);
-//   }
-
-//   return String(bike.tags)
-//     .split(',')
-//     .map((t) => t.trim())
-//     .filter(Boolean);
-// }
-
-// function buildProductTitle(bike) {
-//   if (bike.title && bike.title.trim()) return bike.title.trim();
-//   return `${bike.brand || ''} ${bike.model || ''}`.trim();
-// }
-
-// async function upsertProductWithProductSet(bike) {
-//   const settings = await getSettings();
-
-//   const mutation = `
-//     mutation upsertBikeProduct($productSet: ProductSetInput!, $synchronous: Boolean!, $identifier: ProductSetIdentifiers) {
-//       productSet(synchronous: $synchronous, input: $productSet, identifier: $identifier) {
-//         product {
-//           id
-//           title
-//           status
-//           tags
-//           variants(first: 5) {
-//             nodes {
-//               id
-//               price
-//               inventoryItem {
-//                 id
-//               }
-//               selectedOptions {
-//                 name
-//                 value
-//               }
-//             }
-//           }
-//         }
-//         userErrors {
-//           field
-//           message
-//         }
-//       }
-//     }
-//   `;
-
-//   const variables = {
-//     synchronous: true,
-//     identifier: bike.shopify_product_id
-//       ? { id: bike.shopify_product_id }
-//       : null,
-//     productSet: {
-//       title: buildProductTitle(bike),
-//       descriptionHtml: bike.description || '',
-//       vendor: bike.brand || '',
-//       status: bike.is_deleted ? 'ARCHIVED' : 'ACTIVE',
-//       tags: buildProductTags(bike),
-//       metafields: buildProductMetafields(bike),
-
-//       productOptions: [
-//         {
-//           name: 'Title',
-//           values: [
-//             {
-//               name: 'Default Title'
-//             }
-//           ]
-//         }
-//       ],
-
-//       variants: [
-//         {
-//           optionValues: [
-//             {
-//               optionName: 'Title',
-//               name: 'Default Title'
-//             }
-//           ],
-//           price: String(Number(bike.price || 0)),
-//           inventoryQuantities: [
-//             {
-//               locationId: settings.shopify_location_id,
-//               name: 'available',
-//               quantity: Number(bike.stock || 0)
-//             }
-//           ]
-//         }
-//       ]
-//     }
-//   };
-
-//   const data = await shopifyGraphQL(mutation, variables);
-//   const payload = data.productSet;
-
-//   if (payload.userErrors?.length) {
-//     throw new Error(JSON.stringify(payload.userErrors));
-//   }
-
-//   const product = payload.product;
-//   const variant = product?.variants?.nodes?.[0];
-
-//   return {
-//     productId: product?.id || null,
-//     variantId: variant?.id || null,
-//     inventoryItemId: variant?.inventoryItem?.id || null
-//   };
-// }
-
-// async function archiveProduct(productId) {
-//   const mutation = `
-//     mutation archiveBike($product: ProductUpdateInput!) {
-//       productUpdate(product: $product) {
-//         product {
-//           id
-//           status
-//         }
-//         userErrors {
-//           field
-//           message
-//         }
-//       }
-//     }
-//   `;
-
-//   const data = await shopifyGraphQL(mutation, {
-//     product: {
-//       id: productId,
-//       status: 'ARCHIVED'
-//     }
-//   });
-
-//   const payload = data.productUpdate;
-
-//   if (payload.userErrors?.length) {
-//     throw new Error(JSON.stringify(payload.userErrors));
-//   }
-
-//   return payload.product;
-// }
-
-// module.exports = {
-//   shopifyGraphQL,
-//   upsertProductWithProductSet,
-//   archiveProduct
-// };
-
-//========================================================================================
 const axios = require('axios');
 const path = require('path');
 const { getPool } = require('../config/db');
@@ -383,6 +149,36 @@ function buildPublicImageUrl(imageUrl) {
   return `${baseUrl}${normalizedPath}`;
 }
 
+function buildSafeFilename(bike, index, imageUrl) {
+  const ext = path.extname(imageUrl || '').toLowerCase() || '.jpg';
+
+  const supportedImageExts = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.webp',
+    '.gif',
+    '.bmp',
+    '.tiff'
+  ];
+
+  if (!supportedImageExts.includes(ext)) {
+    return null;
+  }
+
+  const safeTitle =
+    buildProductTitle(bike)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-+|-+$/g, '') || `bike-${bike.id}`;
+
+  return `${safeTitle}-${index + 1}${ext}`;
+}
+
+/**
+ * ProductSetInput.files => FileSetInput[]
+ * يستخدم وقت create / sync أساسي
+ */
 function buildProductFiles(bike) {
   if (!Array.isArray(bike.images) || bike.images.length === 0) {
     return [];
@@ -395,24 +191,39 @@ function buildProductFiles(bike) {
       const originalSource = buildPublicImageUrl(img.image_url);
       if (!originalSource) return null;
 
-      const ext = path.extname(img.image_url || '').toLowerCase();
-      const supportedImageExts = [
-        '.jpg',
-        '.jpeg',
-        '.png',
-        '.webp',
-        '.gif',
-        '.bmp',
-        '.tiff'
-      ];
-
-      if (ext && !supportedImageExts.includes(ext)) {
-        return null;
-      }
+      const filename = buildSafeFilename(bike, index, img.image_url);
+      if (!filename) return null;
 
       return {
         originalSource,
-        alt: `${buildProductTitle(bike)} image ${index + 1}`
+        alt: `${buildProductTitle(bike)} image ${index + 1}`,
+        filename,
+        contentType: 'IMAGE'
+      };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * productUpdate(media: [CreateMediaInput!])
+ * يستخدم لإضافة صور جديدة لمنتج موجود
+ */
+function buildCreateMediaInputs(bike, images) {
+  if (!Array.isArray(images) || images.length === 0) {
+    return [];
+  }
+
+  return images
+    .map((img, index) => {
+      if (!img?.image_url) return null;
+
+      const originalSource = buildPublicImageUrl(img.image_url);
+      if (!originalSource) return null;
+
+      return {
+        originalSource,
+        alt: `${buildProductTitle(bike)} image ${index + 1}`,
+        mediaContentType: 'IMAGE'
       };
     })
     .filter(Boolean);
@@ -516,7 +327,7 @@ async function upsertProductWithProductSet(bike) {
           ]
         }
       ],
-      files
+      ...(files.length ? { files } : {})
     }
   };
 
@@ -543,6 +354,73 @@ async function upsertProductWithProductSet(bike) {
     variantId: variant?.id || null,
     inventoryItemId: variant?.inventoryItem?.id || null,
     media: product?.media?.nodes || []
+  };
+}
+
+/**
+ * إضافة صور جديدة فقط لمنتج موجود في Shopify
+ * مفيد جدًا بعد upload صورة إضافية من صفحة edit
+ */
+async function appendImagesToExistingProduct(productId, bike, images) {
+  if (!productId) {
+    throw new Error('Missing Shopify product ID');
+  }
+
+  const media = buildCreateMediaInputs(bike, images);
+
+  if (media.length === 0) {
+    return { media: [] };
+  }
+
+  const mutation = `
+    mutation UpdateProductWithNewMedia(
+      $product: ProductUpdateInput!,
+      $media: [CreateMediaInput!]
+    ) {
+      productUpdate(product: $product, media: $media) {
+        product {
+          id
+          media(first: 20) {
+            nodes {
+              ... on MediaImage {
+                id
+                alt
+                mediaContentType
+                preview {
+                  status
+                }
+                image {
+                  url
+                }
+              }
+            }
+          }
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyGraphQL(mutation, {
+    product: { id: productId },
+    media
+  });
+
+  const payload = data?.productUpdate;
+
+  if (!payload) {
+    throw new Error('Invalid Shopify response: missing productUpdate payload');
+  }
+
+  if (payload.userErrors?.length) {
+    throw new Error(JSON.stringify(payload.userErrors));
+  }
+
+  return {
+    media: payload.product?.media?.nodes || []
   };
 }
 
@@ -661,6 +539,7 @@ async function archiveProduct(productId) {
 module.exports = {
   shopifyGraphQL,
   upsertProductWithProductSet,
+  appendImagesToExistingProduct,
   archiveProduct,
   getPublications,
   filterTargetPublications,
