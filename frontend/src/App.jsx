@@ -86,8 +86,8 @@ function ProtectedLayout() {
         <div className="brand-block">
           <div className="brand-mark">M</div>
           <div>
-            <h1 className="brand-title">MRA Inventory</h1>
-            <div className="brand-subtitle">Luxe E-Bike Beheer</div>
+            <h1 className="brand-title">MRA Voorraad</h1>
+            <div className="brand-subtitle">E-Bike Beheer</div>
           </div>
         </div>
 
