@@ -4,18 +4,23 @@ const syncService = require('../services/syncService');
 async function uploadBikeImage(req, res) {
   try {
     const bikeId = Number(req.body.bikeId);
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const imageUrl = `${process.env.PUBLIC_BACKEND_URL}/uploads/${req.file.filename}`;
+    if (!process.env.PUBLIC_BACKEND_URL) {
+      return res.status(500).json({ message: 'PUBLIC_BACKEND_URL is missing' });
+    }
+
+    const imageUrl = `${String(process.env.PUBLIC_BACKEND_URL).replace(/\/+$/, '')}/uploads/${req.file.filename}`;
 
     await bikeService.addBikeImage(bikeId, imageUrl);
 
     try {
-      await syncService.syncBike(bikeId, 'update');
+      await syncService.syncNewImagesOnly(bikeId);
     } catch (syncError) {
-      console.error('Shopify sync failed after image upload:', syncError.message);
+      console.error('Shopify image append failed:', syncError.message);
     }
 
     res.json({ imageUrl });
