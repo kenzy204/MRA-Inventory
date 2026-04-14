@@ -82,10 +82,11 @@ export default function BikeEditPage() {
     load();
   }, [id]);
 
-  async function handleSubmit(form) {
-    await updateBike(id, form);
-    navigate('/');
-  }
+ async function handleSubmit(form) {
+  const { images, ...payload } = form;
+  await updateBike(id, payload);
+  navigate('/');
+}
 
   async function handleImageUpload(bikeId, file) {
     await uploadBikeImage(bikeId, file);
