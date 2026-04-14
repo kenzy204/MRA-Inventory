@@ -4,10 +4,18 @@ async function getAllBikes() {
   const pool = await getPool();
 
   const result = await pool.query(`
-    SELECT *
-    FROM bikes
-    WHERE is_deleted = false
-    ORDER BY id DESC
+    SELECT
+      b.*,
+      (
+        SELECT bi.image_url
+        FROM bike_images bi
+        WHERE bi.bike_id = b.id
+        ORDER BY bi.sort_order ASC, bi.id ASC
+        LIMIT 1
+      ) AS first_image
+    FROM bikes b
+    WHERE b.is_deleted = false
+    ORDER BY b.id DESC
   `);
 
   return result.rows;
