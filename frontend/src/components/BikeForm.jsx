@@ -274,16 +274,20 @@ export default function BikeForm({
           </div>
 
           <div className="field-grid-2" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Tags</label>
-              <input
-                className="input"
-                name="tags"
-                value={form.tags ?? ''}
-                onChange={handleChange}
-                placeholder="premium, urban, carbon"
-              />
-            </div>
+           <div className="field">
+  <label>Tags</label>
+  <select
+    className="select"
+    name="tags"
+    value={form.tags ?? ''}
+    onChange={handleChange}
+  >
+    <option value="">Selecteer</option>
+    <option value="MRA-Zwolle">MRA-Zwolle</option>
+    <option value="MRA-Beilen">MRA-Beilen</option>
+    <option value="MRA-Eindhoven">MRA-Eindhoven</option>
+  </select>
+</div>
             <div className="field">
               <label>Staat van de fiets</label>
               <select className="select" name="condition" value={form.condition ?? 'used'} onChange={handleChange}>
