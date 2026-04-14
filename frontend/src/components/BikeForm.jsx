@@ -7,20 +7,54 @@ const defaultState = {
   description: '',
   price: '',
   stock: '',
-  condition: 'used',
-  mileage: '',
-  motor_type: '',
-  battery_capacity: '',
-  range_km: '',
-  frame_type: '',
-  frame_size: '',
-  brakes: '',
-  suspension: '',
-  tires: '',
-  display: '',
-  drivetrain: '',
+  sku: '',
   tags: '',
-  sku: ''
+
+  condition: 'used',
+  kilometerstand: '',
+  km_s: '',
+
+  merk: '',
+  type: '',
+  positie: '',
+  koppel_motor_nm: '',
+  type_aandrijving: '',
+
+  accu_capaciteit_wh: '',
+  accu_positie: '',
+  accu_uitneembaar: '',
+  accu: '',
+
+  type_remmen: '',
+  merk_remmen: '',
+  remmen: '',
+
+  display_merk: '',
+  display_type: '',
+  display: '',
+
+  voorvork_vering_aanwezig: '',
+  voorvork_vering_type: '',
+  verende_zadelpen_aanwezig: '',
+  verende_zadelpen_type: '',
+  zadelvering: '',
+  vering: '',
+
+  bandmerk: '',
+  bandmodel: '',
+  anti_lek_banden: '',
+  bandbreedte: '',
+  banden: '',
+
+  frame_size: '',
+  type_frame: '',
+  framemateriaal: '',
+  frame: '',
+
+  wielmaat: '',
+
+  aantal_sleutels: '',
+  fabrieksgarantie: ''
 };
 
 export default function BikeForm({
@@ -74,8 +108,15 @@ export default function BikeForm({
         ...form,
         price: form.price === '' ? 0 : Number(form.price),
         stock: form.stock === '' ? 0 : Number(form.stock),
-        mileage: form.mileage === '' ? null : Number(form.mileage),
-        range_km: form.range_km === '' ? null : Number(form.range_km),
+        koppel_motor_nm:
+          form.koppel_motor_nm === '' ? null : Number(form.koppel_motor_nm),
+        accu_capaciteit_wh:
+          form.accu_capaciteit_wh === '' ? null : Number(form.accu_capaciteit_wh),
+        frame_size: form.frame_size === '' ? null : Number(form.frame_size),
+        aantal_sleutels:
+          form.aantal_sleutels === '' ? null : Number(form.aantal_sleutels),
+        kilometerstand:
+          form.kilometerstand === '' ? null : Number(form.kilometerstand),
         images
       });
     } finally {
@@ -123,6 +164,24 @@ export default function BikeForm({
     return <img src={src} alt={altText} />;
   }
 
+  function renderBooleanSelect(name, label) {
+    return (
+      <div className="field">
+        <label>{label}</label>
+        <select
+          className="select"
+          name={name}
+          value={form[name] ?? ''}
+          onChange={handleChange}
+        >
+          <option value="">Selecteer</option>
+          <option value="ja">Ja</option>
+          <option value="nee">Nee</option>
+        </select>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="form-grid">
       <div className="form-stack">
@@ -144,8 +203,8 @@ export default function BikeForm({
             <div className="dropzone">
               <p style={{ marginTop: 0 }}>
                 {bikeId
-                  ? 'Select images to add or replace'
-                  : 'Select images before saving the bike'}
+                  ? 'Selecteer afbeeldingen om toe te voegen of te vervangen'
+                  : 'Selecteer afbeeldingen voordat je de fiets opslaat'}
               </p>
 
               <input
@@ -178,33 +237,33 @@ export default function BikeForm({
         </div>
 
         <div className="form-card">
-          <h3>Core Information</h3>
+          <h3>Algemeen</h3>
 
           <div className="field">
-            <label>Product Title</label>
+            <label>Product titel</label>
             <input
               className="input"
               name="title"
               value={form.title ?? ''}
               onChange={handleChange}
-              placeholder="Volt-X Carbon Stealth"
+              placeholder="Bijvoorbeeld: Koga E-bike"
             />
           </div>
 
           <div className="field" style={{ marginTop: 14 }}>
-            <label>Marketing Description</label>
+            <label>Beschrijving</label>
             <textarea
               className="textarea"
               name="description"
               value={form.description ?? ''}
               onChange={handleChange}
-              placeholder="Write a polished showroom description..."
+              placeholder="Schrijf een duidelijke beschrijving..."
             />
           </div>
 
           <div className="field-grid-3" style={{ marginTop: 14 }}>
             <div className="field">
-              <label>MSRP ($)</label>
+              <label>Prijs</label>
               <input
                 className="input"
                 name="price"
@@ -215,7 +274,7 @@ export default function BikeForm({
             </div>
 
             <div className="field">
-              <label>Warehouse Stock</label>
+              <label>Voorraad</label>
               <input
                 className="input"
                 name="stock"
@@ -232,16 +291,11 @@ export default function BikeForm({
                 name="sku"
                 value={form.sku ?? ''}
                 onChange={handleChange}
-                placeholder="EB-2024-VLT"
               />
             </div>
           </div>
-        </div>
 
-        <div className="form-card">
-          <h3>Model Details</h3>
-
-          <div className="field-grid-2">
+          <div className="field-grid-2" style={{ marginTop: 14 }}>
             <div className="field">
               <label>Brand</label>
               <input
@@ -263,31 +317,7 @@ export default function BikeForm({
             </div>
           </div>
 
-          <div className="field-grid-3" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Condition</label>
-              <select
-                className="select"
-                name="condition"
-                value={form.condition ?? 'used'}
-                onChange={handleChange}
-              >
-                <option value="used">Used</option>
-                <option value="new">New</option>
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Mileage</label>
-              <input
-                className="input"
-                name="mileage"
-                type="number"
-                value={form.mileage ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
+          <div className="field-grid-2" style={{ marginTop: 14 }}>
             <div className="field">
               <label>Tags</label>
               <input
@@ -298,31 +328,43 @@ export default function BikeForm({
                 placeholder="premium, urban, carbon"
               />
             </div>
+
+            <div className="field">
+              <label>Staat van de fiets</label>
+              <select
+                className="select"
+                name="condition"
+                value={form.condition ?? 'used'}
+                onChange={handleChange}
+              >
+                <option value="used">Gebruikt</option>
+                <option value="new">Nieuw</option>
+                <option value="demo">Demo</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="form-stack">
         <div className="form-card">
-          <h3>Technical Specifications</h3>
+          <h3>Aandrijving</h3>
 
           <div className="field-grid-2">
             <div className="field">
-              <label>Motor Type</label>
+              <label>Merk</label>
               <input
                 className="input"
-                name="motor_type"
-                value={form.motor_type ?? ''}
+                name="merk"
+                value={form.merk ?? ''}
                 onChange={handleChange}
               />
             </div>
 
             <div className="field">
-              <label>Battery Capacity</label>
+              <label>Type</label>
               <input
                 className="input"
-                name="battery_capacity"
-                value={form.battery_capacity ?? ''}
+                name="type"
+                value={form.type ?? ''}
                 onChange={handleChange}
               />
             </div>
@@ -330,89 +372,367 @@ export default function BikeForm({
 
           <div className="field-grid-2" style={{ marginTop: 14 }}>
             <div className="field">
-              <label>Range (KM)</label>
+              <label>Positie</label>
               <input
                 className="input"
-                name="range_km"
+                name="positie"
+                value={form.positie ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Koppel motor (Nm)</label>
+              <input
+                className="input"
+                name="koppel_motor_nm"
                 type="number"
-                value={form.range_km ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Frame Type</label>
-              <input
-                className="input"
-                name="frame_type"
-                value={form.frame_type ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Frame Size</label>
-              <input
-                className="input"
-                name="frame_size"
-                value={form.frame_size ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Brakes</label>
-              <input
-                className="input"
-                name="brakes"
-                value={form.brakes ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-3" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Suspension</label>
-              <input
-                className="input"
-                name="suspension"
-                value={form.suspension ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Tires</label>
-              <input
-                className="input"
-                name="tires"
-                value={form.tires ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Display</label>
-              <input
-                className="input"
-                name="display"
-                value={form.display ?? ''}
+                step="0.1"
+                value={form.koppel_motor_nm ?? ''}
                 onChange={handleChange}
               />
             </div>
           </div>
 
           <div className="field" style={{ marginTop: 14 }}>
-            <label>Drivetrain</label>
+            <label>Aandrijving</label>
+            <textarea
+              className="textarea"
+              name="type_aandrijving"
+              value={form.type_aandrijving ?? ''}
+              onChange={handleChange}
+              placeholder="Vrij tekstveld voor custom.type-aandrijving"
+            />
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Accu</h3>
+
+          <div className="field-grid-2">
+            <div className="field">
+              <label>Accu capaciteit (Wh)</label>
+              <input
+                className="input"
+                name="accu_capaciteit_wh"
+                type="number"
+                value={form.accu_capaciteit_wh ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Accu positie</label>
+              <input
+                className="input"
+                name="accu_positie"
+                value={form.accu_positie ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field-grid-2" style={{ marginTop: 14 }}>
+            {renderBooleanSelect('accu_uitneembaar', 'Accu uitneembaar')}
+            <div className="field">
+              <label>Accu</label>
+              <textarea
+                className="textarea"
+                name="accu"
+                value={form.accu ?? ''}
+                onChange={handleChange}
+                placeholder="Vrij tekstveld voor custom.accu"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Remsysteem</h3>
+
+          <div className="field-grid-2">
+            <div className="field">
+              <label>Type remmen</label>
+              <input
+                className="input"
+                name="type_remmen"
+                value={form.type_remmen ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Merk remmen</label>
+              <input
+                className="input"
+                name="merk_remmen"
+                value={form.merk_remmen ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field" style={{ marginTop: 14 }}>
+            <label>Rem</label>
+            <textarea
+              className="textarea"
+              name="remmen"
+              value={form.remmen ?? ''}
+              onChange={handleChange}
+              placeholder="Vrij tekstveld voor custom.remmen"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="form-stack">
+        <div className="form-card">
+          <h3>Display</h3>
+
+          <div className="field-grid-2">
+            <div className="field">
+              <label>Display merk</label>
+              <input
+                className="input"
+                name="display_merk"
+                value={form.display_merk ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Display type</label>
+              <input
+                className="input"
+                name="display_type"
+                value={form.display_type ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field" style={{ marginTop: 14 }}>
+            <label>Display</label>
+            <textarea
+              className="textarea"
+              name="display"
+              value={form.display ?? ''}
+              onChange={handleChange}
+              placeholder="Vrij tekstveld voor custom.display"
+            />
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Veringscomfort</h3>
+
+          <div className="field-grid-2">
+            {renderBooleanSelect(
+              'voorvork_vering_aanwezig',
+              'Voorvork vering aanwezig'
+            )}
+            <div className="field">
+              <label>Voorvork vering type</label>
+              <input
+                className="input"
+                name="voorvork_vering_type"
+                value={form.voorvork_vering_type ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field-grid-2" style={{ marginTop: 14 }}>
+            {renderBooleanSelect(
+              'verende_zadelpen_aanwezig',
+              'Verende zadelpen aanwezig'
+            )}
+            <div className="field">
+              <label>Verende zadelpen type</label>
+              <input
+                className="input"
+                name="verende_zadelpen_type"
+                value={form.verende_zadelpen_type ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field-grid-2" style={{ marginTop: 14 }}>
+            {renderBooleanSelect('zadelvering', 'Zadelvering')}
+            <div className="field">
+              <label>Vering</label>
+              <textarea
+                className="textarea"
+                name="vering"
+                value={form.vering ?? ''}
+                onChange={handleChange}
+                placeholder="Vrij tekstveld voor custom.vering"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Banden</h3>
+
+          <div className="field-grid-2">
+            <div className="field">
+              <label>Bandmerk</label>
+              <input
+                className="input"
+                name="bandmerk"
+                value={form.bandmerk ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Bandmodel</label>
+              <input
+                className="input"
+                name="bandmodel"
+                value={form.bandmodel ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field-grid-2" style={{ marginTop: 14 }}>
+            {renderBooleanSelect('anti_lek_banden', 'Anti-lek banden')}
+            <div className="field">
+              <label>Bandbreedte</label>
+              <input
+                className="input"
+                name="bandbreedte"
+                value={form.bandbreedte ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field" style={{ marginTop: 14 }}>
+            <label>Banden</label>
+            <textarea
+              className="textarea"
+              name="banden"
+              value={form.banden ?? ''}
+              onChange={handleChange}
+              placeholder="Vrij tekstveld voor custom.banden"
+            />
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Frame</h3>
+
+          <div className="field-grid-2">
+            <div className="field">
+              <label>Framemaat (cm)</label>
+              <input
+                className="input"
+                name="frame_size"
+                type="number"
+                step="0.1"
+                value={form.frame_size ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Type frame</label>
+              <input
+                className="input"
+                name="type_frame"
+                value={form.type_frame ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="field-grid-2" style={{ marginTop: 14 }}>
+            <div className="field">
+              <label>Framemateriaal</label>
+              <input
+                className="input"
+                name="framemateriaal"
+                value={form.framemateriaal ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Frame</label>
+              <textarea
+                className="textarea"
+                name="frame"
+                value={form.frame ?? ''}
+                onChange={handleChange}
+                placeholder="Vrij tekstveld voor custom.frame"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Wielen</h3>
+
+          <div className="field">
+            <label>Wielmaat</label>
             <input
               className="input"
-              name="drivetrain"
-              value={form.drivetrain ?? ''}
+              name="wielmaat"
+              value={form.wielmaat ?? ''}
               onChange={handleChange}
+              placeholder="Bijvoorbeeld 28 inch"
             />
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Levering</h3>
+
+          <div className="field-grid-2">
+            <div className="field">
+              <label>Aantal sleutels</label>
+              <input
+                className="input"
+                name="aantal_sleutels"
+                type="number"
+                value={form.aantal_sleutels ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            {renderBooleanSelect('fabrieksgarantie', 'Fabrieksgarantie')}
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h3>Gebruik</h3>
+
+          <div className="field-grid-2">
+            <div className="field">
+              <label>Kilometerstand</label>
+              <input
+                className="input"
+                name="kilometerstand"
+                type="number"
+                value={form.kilometerstand ?? ''}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="field">
+              <label>Km’s</label>
+              <input
+                className="input"
+                name="km_s"
+                value={form.km_s ?? ''}
+                onChange={handleChange}
+                placeholder="Vrij tekstveld voor custom.km_s"
+              />
+            </div>
           </div>
         </div>
 
@@ -467,7 +787,11 @@ export default function BikeForm({
           )}
 
           <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-            <button className="secondary-btn" type="button" onClick={() => window.history.back()}>
+            <button
+              className="secondary-btn"
+              type="button"
+              onClick={() => window.history.back()}
+            >
               Cancel
             </button>
             <button className="primary-btn" type="submit" disabled={saving}>
