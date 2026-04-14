@@ -1,805 +1,277 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { deleteBike, getBikes, syncBike } from '../api/bikes';
 
-const defaultState = {
-  brand: '',
-  model: '',
-  title: '',
-  description: '',
-  price: '',
-  stock: '',
-  sku: '',
-  tags: '',
+export default function BikesPage() {
+  const [bikes, setBikes] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [brandFilter, setBrandFilter] = useState('all');
+  const [conditionFilter, setConditionFilter] = useState('all');
+  const [stockFilter, setStockFilter] = useState('all');
 
-  condition: 'used',
-  kilometerstand: '',
-  km_s: '',
-
-  merk: '',
-  type: '',
-  positie: '',
-  koppel_motor_nm: '',
-  type_aandrijving: '',
-
-  accu_capaciteit_wh: '',
-  accu_positie: '',
-  accu_uitneembaar: '',
-  accu: '',
-
-  type_remmen: '',
-  merk_remmen: '',
-  remmen: '',
-
-  display_merk: '',
-  display_type: '',
-  display: '',
-
-  voorvork_vering_aanwezig: '',
-  voorvork_vering_type: '',
-  verende_zadelpen_aanwezig: '',
-  verende_zadelpen_type: '',
-  zadelvering: '',
-  vering: '',
-
-  bandmerk: '',
-  bandmodel: '',
-  anti_lek_banden: '',
-  bandbreedte: '',
-  banden: '',
-
-  frame_size: '',
-  type_frame: '',
-  framemateriaal: '',
-  frame: '',
-
-  wielmaat: '',
-
-  aantal_sleutels: '',
-  fabrieksgarantie: ''
-};
-
-export default function BikeForm({
-  initialValues = defaultState,
-  onSubmit,
-  onImageUpload,
-  bikeId
-}) {
-  const [form, setForm] = useState({ ...defaultState, ...initialValues });
-  const [images, setImages] = useState([]);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  async function load() {
+    try {
+      setLoading(true);
+      const data = await getBikes();
+      setBikes(data);
+      setError('');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to load bikes');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    setForm({ ...defaultState, ...initialValues });
-  }, [initialValues]);
+    load();
+  }, []);
 
-  const previewUrls = useMemo(() => {
-    return images.map((file) => ({
-      file,
-      url: URL.createObjectURL(file)
-    }));
-  }, [images]);
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this bike?')) return;
+    await deleteBike(id);
+    await load();
+  }
 
-  useEffect(() => {
-    return () => {
-      previewUrls.forEach((item) => URL.revokeObjectURL(item.url));
+  async function handleSync(id) {
+    await syncBike(id);
+    await load();
+  }
+
+  const brandOptions = useMemo(() => {
+    return [...new Set(bikes.map((bike) => bike.brand).filter(Boolean))];
+  }, [bikes]);
+
+  const filteredBikes = useMemo(() => {
+    return bikes.filter((bike) => {
+      const title = bike.title || `${bike.brand || ''} ${bike.model || ''}`;
+      const haystack = `${title} ${bike.model || ''} ${bike.sku || ''} ${bike.brand || ''}`.toLowerCase();
+
+      const matchesSearch = haystack.includes(search.toLowerCase());
+      const matchesBrand = brandFilter === 'all' || bike.brand === brandFilter;
+      const matchesCondition =
+        conditionFilter === 'all' || String(bike.condition || '').toLowerCase() === conditionFilter;
+
+      const stockValue = Number(bike.stock || 0);
+      const matchesStock =
+        stockFilter === 'all' ||
+        (stockFilter === 'in-stock' && stockValue > 3) ||
+        (stockFilter === 'low' && stockValue > 0 && stockValue <= 3) ||
+        (stockFilter === 'out' && stockValue <= 0);
+
+      return matchesSearch && matchesBrand && matchesCondition && matchesStock;
+    });
+  }, [bikes, search, brandFilter, conditionFilter, stockFilter]);
+
+  const stats = useMemo(() => {
+    const totalStock = bikes.reduce((sum, bike) => sum + Number(bike.stock || 0), 0);
+    const lowStock = bikes.filter((bike) => Number(bike.stock || 0) > 0 && Number(bike.stock || 0) <= 3).length;
+    const syncHealthy = bikes.length
+      ? Math.round((bikes.filter((b) => b.sync_status === 'success').length / bikes.length) * 100)
+      : 0;
+
+    return {
+      totalStock,
+      activeListings: bikes.length,
+      syncHealthy,
+      lowStock
     };
-  }, [previewUrls]);
+  }, [bikes]);
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+  function stockClass(stock) {
+    const value = Number(stock || 0);
+    if (value <= 0) return 'stock-out';
+    if (value <= 3) return 'stock-low';
+    return 'stock-ok';
   }
 
-  function handleImagesChange(e) {
-    const files = Array.from(e.target.files || []);
-    setImages(files);
+  function syncBadge(status) {
+    if (status === 'success') return 'badge badge-success';
+    if (status === 'pending') return 'badge badge-pending';
+    if (status === 'error') return 'badge badge-error';
+    return 'badge badge-synced';
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setSaving(true);
-
-    try {
-      await onSubmit({
-        ...form,
-        price: form.price === '' ? 0 : Number(form.price),
-        stock: form.stock === '' ? 0 : Number(form.stock),
-        koppel_motor_nm:
-          form.koppel_motor_nm === '' ? null : Number(form.koppel_motor_nm),
-        accu_capaciteit_wh:
-          form.accu_capaciteit_wh === '' ? null : Number(form.accu_capaciteit_wh),
-        frame_size: form.frame_size === '' ? null : Number(form.frame_size),
-        aantal_sleutels:
-          form.aantal_sleutels === '' ? null : Number(form.aantal_sleutels),
-        kilometerstand:
-          form.kilometerstand === '' ? null : Number(form.kilometerstand),
-        images
-      });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleUploadAdditionalImages() {
-    if (!bikeId || images.length === 0 || !onImageUpload) return;
-
-    setUploading(true);
-
-    try {
-      for (const file of images) {
-        await onImageUpload(bikeId, file);
-      }
-
-      setImages([]);
-      alert('Images uploaded');
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  const existingImages = initialValues?.images || [];
-  const displayedImages =
-    previewUrls.length > 0
-      ? previewUrls.map((item) => ({ image_url: item.url, isPreview: true }))
-      : existingImages;
-
-  const mainImage = displayedImages[0];
-  const sideImages = displayedImages.slice(1, 3);
-
-  function renderImage(image, altText, placeholderText) {
-    if (!image) {
-      return <div className="asset-upload-box">{placeholderText}</div>;
-    }
-
-    const src = image.isPreview
-      ? image.image_url
-      : /^https?:\/\//i.test(image.image_url)
-      ? image.image_url
-      : `${import.meta.env.VITE_BACKEND_URL}${image.image_url}`;
-
-    return <img src={src} alt={altText} />;
-  }
-
-  function renderBooleanSelect(name, label) {
-    return (
-      <div className="field">
-        <label>{label}</label>
-        <select
-          className="select"
-          name={name}
-          value={form[name] ?? ''}
-          onChange={handleChange}
-        >
-          <option value="">Selecteer</option>
-          <option value="ja">Ja</option>
-          <option value="nee">Nee</option>
-        </select>
-      </div>
-    );
+  function imageSrc(imageUrl) {
+    if (!imageUrl) return '';
+    return /^https?:\/\//i.test(imageUrl)
+      ? imageUrl
+      : `${import.meta.env.VITE_BACKEND_URL}${imageUrl}`;
   }
 
   return (
-    <form onSubmit={handleSubmit} className="form-grid">
-      <div className="form-stack">
-        <div className="form-card">
-          <h3>Asset Management</h3>
-
-          <div className="asset-gallery">
-            <div className="asset-main">
-              {renderImage(mainImage, 'Bike main', 'Main Image Preview')}
-            </div>
-
-            <div className="asset-side">
-              {renderImage(sideImages[0], 'Bike side', 'Side Image')}
-              {renderImage(sideImages[1], 'Bike side', 'Add Media')}
-            </div>
-          </div>
-
-          <div style={{ marginTop: 18 }}>
-            <div className="dropzone">
-              <p style={{ marginTop: 0 }}>
-                {bikeId
-                  ? 'Selecteer afbeeldingen om toe te voegen of te vervangen'
-                  : 'Selecteer afbeeldingen voordat je de fiets opslaat'}
-              </p>
-
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImagesChange}
-              />
-
-              {images.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  {images.length} image(s) selected
-                </div>
-              )}
-
-              {bikeId && (
-                <div style={{ marginTop: 12 }}>
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={handleUploadAdditionalImages}
-                    disabled={images.length === 0 || uploading}
-                  >
-                    {uploading ? 'Uploading...' : 'Upload Additional Images'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+    <>
+      <div className="card-grid">
+        <div className="stat-card">
+          <div className="stat-label">Total Stock</div>
+          <div className="stat-value">{stats.totalStock}</div>
         </div>
 
-        <div className="form-card">
-          <h3>Algemeen</h3>
-
-          <div className="field">
-            <label>Product titel</label>
-            <input
-              className="input"
-              name="title"
-              value={form.title ?? ''}
-              onChange={handleChange}
-              placeholder="Bijvoorbeeld: Koga E-bike"
-            />
-          </div>
-
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>Beschrijving</label>
-            <textarea
-              className="textarea"
-              name="description"
-              value={form.description ?? ''}
-              onChange={handleChange}
-              placeholder="Schrijf een duidelijke beschrijving..."
-            />
-          </div>
-
-          <div className="field-grid-3" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Prijs</label>
-              <input
-                className="input"
-                name="price"
-                type="number"
-                value={form.price ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Voorraad</label>
-              <input
-                className="input"
-                name="stock"
-                type="number"
-                value={form.stock ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>SKU</label>
-              <input
-                className="input"
-                name="sku"
-                value={form.sku ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Brand</label>
-              <input
-                className="input"
-                name="brand"
-                value={form.brand ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Model</label>
-              <input
-                className="input"
-                name="model"
-                value={form.model ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Tags</label>
-              <input
-                className="input"
-                name="tags"
-                value={form.tags ?? ''}
-                onChange={handleChange}
-                placeholder="premium, urban, carbon"
-              />
-            </div>
-
-            <div className="field">
-              <label>Staat van de fiets</label>
-              <select
-                className="select"
-                name="condition"
-                value={form.condition ?? 'used'}
-                onChange={handleChange}
-              >
-                <option value="used">Gebruikt</option>
-                <option value="new">Nieuw</option>
-                <option value="demo">Demo</option>
-              </select>
-            </div>
-          </div>
+        <div className="stat-card">
+          <div className="stat-label">Live Listings</div>
+          <div className="stat-value">{stats.activeListings}</div>
         </div>
 
-        <div className="form-card">
-          <h3>Aandrijving</h3>
-
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Merk</label>
-              <input
-                className="input"
-                name="merk"
-                value={form.merk ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Type</label>
-              <input
-                className="input"
-                name="type"
-                value={form.type ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Positie</label>
-              <input
-                className="input"
-                name="positie"
-                value={form.positie ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Koppel motor (Nm)</label>
-              <input
-                className="input"
-                name="koppel_motor_nm"
-                type="number"
-                step="0.1"
-                value={form.koppel_motor_nm ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>Aandrijving</label>
-            <textarea
-              className="textarea"
-              name="type_aandrijving"
-              value={form.type_aandrijving ?? ''}
-              onChange={handleChange}
-              placeholder="Vrij tekstveld voor custom.type-aandrijving"
-            />
-          </div>
+        <div className="stat-card">
+          <div className="stat-label">Sync Health</div>
+          <div className="stat-value">{stats.syncHealthy}%</div>
         </div>
 
-        <div className="form-card">
-          <h3>Accu</h3>
-
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Accu capaciteit (Wh)</label>
-              <input
-                className="input"
-                name="accu_capaciteit_wh"
-                type="number"
-                value={form.accu_capaciteit_wh ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Accu positie</label>
-              <input
-                className="input"
-                name="accu_positie"
-                value={form.accu_positie ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            {renderBooleanSelect('accu_uitneembaar', 'Accu uitneembaar')}
-            <div className="field">
-              <label>Accu</label>
-              <textarea
-                className="textarea"
-                name="accu"
-                value={form.accu ?? ''}
-                onChange={handleChange}
-                placeholder="Vrij tekstveld voor custom.accu"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="form-card">
-          <h3>Remsysteem</h3>
-
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Type remmen</label>
-              <input
-                className="input"
-                name="type_remmen"
-                value={form.type_remmen ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Merk remmen</label>
-              <input
-                className="input"
-                name="merk_remmen"
-                value={form.merk_remmen ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>Rem</label>
-            <textarea
-              className="textarea"
-              name="remmen"
-              value={form.remmen ?? ''}
-              onChange={handleChange}
-              placeholder="Vrij tekstveld voor custom.remmen"
-            />
-          </div>
+        <div className="stat-card dark">
+          <div className="stat-label">Low Stock Alerts</div>
+          <div className="stat-value">{stats.lowStock}</div>
         </div>
       </div>
 
-      <div className="form-stack">
-        <div className="form-card">
-          <h3>Display</h3>
+      <div className="panel">
+        <div className="filters-row">
+          <input
+            className="input"
+            placeholder="Search by title, model, brand or SKU..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Display merk</label>
-              <input
-                className="input"
-                name="display_merk"
-                value={form.display_merk ?? ''}
-                onChange={handleChange}
-              />
-            </div>
+          <select className="select" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
+            <option value="all">All Brands</option>
+            {brandOptions.map((brand) => (
+              <option key={brand} value={brand}>
+                {brand}
+              </option>
+            ))}
+          </select>
 
-            <div className="field">
-              <label>Display type</label>
-              <input
-                className="input"
-                name="display_type"
-                value={form.display_type ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+          <select
+            className="select"
+            value={conditionFilter}
+            onChange={(e) => setConditionFilter(e.target.value)}
+          >
+            <option value="all">Condition</option>
+            <option value="used">Used</option>
+            <option value="new">New</option>
+            <option value="demo">Demo</option>
+          </select>
 
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>Display</label>
-            <textarea
-              className="textarea"
-              name="display"
-              value={form.display ?? ''}
-              onChange={handleChange}
-              placeholder="Vrij tekstveld voor custom.display"
-            />
-          </div>
+          <select className="select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
+            <option value="all">Stock Status</option>
+            <option value="in-stock">In Stock</option>
+            <option value="low">Low Stock</option>
+            <option value="out">Out of Stock</option>
+          </select>
+
+          <button
+            className="secondary-btn"
+            type="button"
+            onClick={() => {
+              setSearch('');
+              setBrandFilter('all');
+              setConditionFilter('all');
+              setStockFilter('all');
+            }}
+          >
+            ↺
+          </button>
         </div>
 
-        <div className="form-card">
-          <h3>Veringscomfort</h3>
+        {error && <p className="error-text">{error}</p>}
+        {loading && <p>Loading...</p>}
 
-          <div className="field-grid-2">
-            {renderBooleanSelect(
-              'voorvork_vering_aanwezig',
-              'Voorvork vering aanwezig'
-            )}
-            <div className="field">
-              <label>Voorvork vering type</label>
-              <input
-                className="input"
-                name="voorvork_vering_type"
-                value={form.voorvork_vering_type ?? ''}
-                onChange={handleChange}
-              />
-            </div>
+        {!loading && (
+          <div className="table-wrap">
+            <table className="inventory-table">
+              <thead>
+                <tr>
+                  <th>Bike</th>
+                  <th>Brand</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Kilometerstand</th>
+                  <th>Shopify Sync</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredBikes.map((bike) => {
+                  const firstImage = bike.images?.[0]?.image_url;
+                  const displayTitle = bike.title || `${bike.brand || ''} ${bike.model || ''}`.trim();
+
+                  return (
+                    <tr key={bike.id}>
+                      <td>
+                        <div className="bike-cell">
+                          {firstImage ? (
+                            <img
+                              className="bike-thumb"
+                              src={imageSrc(firstImage)}
+                              alt={displayTitle}
+                            />
+                          ) : (
+                            <div className="bike-thumb-placeholder" />
+                          )}
+
+                          <div>
+                            <div className="bike-title">{displayTitle}</div>
+                            <div className="bike-subtitle">
+                              {bike.model || 'No model'} {bike.sku ? `• ${bike.sku}` : ''}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td>{bike.brand || '-'}</td>
+
+                      <td className="value-strong">
+                        €{Number(bike.price || 0).toLocaleString()}
+                      </td>
+
+                      <td>
+                        <span className="value-strong">{bike.stock}</span>
+                        <span className={`stock-indicator ${stockClass(bike.stock)}`}>
+                          {Number(bike.stock || 0) <= 0
+                            ? 'OUT'
+                            : Number(bike.stock || 0) <= 3
+                            ? 'LOW'
+                            : 'IN STOCK'}
+                        </span>
+                      </td>
+
+                      <td>{bike.kilometerstand || 0} km</td>
+
+                      <td>
+                        <span className={syncBadge(bike.sync_status)}>
+                          {bike.sync_status || 'unknown'}
+                        </span>
+                      </td>
+
+                      <td>
+                        <div className="table-actions">
+                          <Link className="table-btn" to={`/bikes/${bike.id}/edit`}>
+                            Edit
+                          </Link>
+                          <button className="table-btn" onClick={() => handleSync(bike.id)}>
+                            Sync
+                          </button>
+                          <button className="table-btn" onClick={() => handleDelete(bike.id)}>
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {filteredBikes.length === 0 && !loading && (
+                  <tr>
+                    <td colSpan="7">No bikes found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            {renderBooleanSelect(
-              'verende_zadelpen_aanwezig',
-              'Verende zadelpen aanwezig'
-            )}
-            <div className="field">
-              <label>Verende zadelpen type</label>
-              <input
-                className="input"
-                name="verende_zadelpen_type"
-                value={form.verende_zadelpen_type ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            {renderBooleanSelect('zadelvering', 'Zadelvering')}
-            <div className="field">
-              <label>Vering</label>
-              <textarea
-                className="textarea"
-                name="vering"
-                value={form.vering ?? ''}
-                onChange={handleChange}
-                placeholder="Vrij tekstveld voor custom.vering"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="form-card">
-          <h3>Banden</h3>
-
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Bandmerk</label>
-              <input
-                className="input"
-                name="bandmerk"
-                value={form.bandmerk ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Bandmodel</label>
-              <input
-                className="input"
-                name="bandmodel"
-                value={form.bandmodel ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            {renderBooleanSelect('anti_lek_banden', 'Anti-lek banden')}
-            <div className="field">
-              <label>Bandbreedte</label>
-              <input
-                className="input"
-                name="bandbreedte"
-                value={form.bandbreedte ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>Banden</label>
-            <textarea
-              className="textarea"
-              name="banden"
-              value={form.banden ?? ''}
-              onChange={handleChange}
-              placeholder="Vrij tekstveld voor custom.banden"
-            />
-          </div>
-        </div>
-
-        <div className="form-card">
-          <h3>Frame</h3>
-
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Framemaat (cm)</label>
-              <input
-                className="input"
-                name="frame_size"
-                type="number"
-                step="0.1"
-                value={form.frame_size ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Type frame</label>
-              <input
-                className="input"
-                name="type_frame"
-                value={form.type_frame ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field-grid-2" style={{ marginTop: 14 }}>
-            <div className="field">
-              <label>Framemateriaal</label>
-              <input
-                className="input"
-                name="framemateriaal"
-                value={form.framemateriaal ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Frame</label>
-              <textarea
-                className="textarea"
-                name="frame"
-                value={form.frame ?? ''}
-                onChange={handleChange}
-                placeholder="Vrij tekstveld voor custom.frame"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="form-card">
-          <h3>Wielen</h3>
-
-          <div className="field">
-            <label>Wielmaat</label>
-            <input
-              className="input"
-              name="wielmaat"
-              value={form.wielmaat ?? ''}
-              onChange={handleChange}
-              placeholder="Bijvoorbeeld 28 inch"
-            />
-          </div>
-        </div>
-
-        <div className="form-card">
-          <h3>Levering</h3>
-
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Aantal sleutels</label>
-              <input
-                className="input"
-                name="aantal_sleutels"
-                type="number"
-                value={form.aantal_sleutels ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            {renderBooleanSelect('fabrieksgarantie', 'Fabrieksgarantie')}
-          </div>
-        </div>
-
-        <div className="form-card">
-          <h3>Gebruik</h3>
-
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Kilometerstand</label>
-              <input
-                className="input"
-                name="kilometerstand"
-                type="number"
-                value={form.kilometerstand ?? ''}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Km’s</label>
-              <input
-                className="input"
-                name="km_s"
-                value={form.km_s ?? ''}
-                onChange={handleChange}
-                placeholder="Vrij tekstveld voor custom.km_s"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="side-status-card">
-          <h4 style={{ marginTop: 0 }}>Shopify Status</h4>
-
-          <div className="side-status-meta">
-            Last sync:{' '}
-            {initialValues?.last_synced_at
-              ? new Date(initialValues.last_synced_at).toLocaleString()
-              : 'Not synced yet'}
-          </div>
-
-          <div style={{ marginBottom: 14 }}>
-            <span
-              className={
-                initialValues?.sync_status === 'success'
-                  ? 'badge badge-success'
-                  : initialValues?.sync_status === 'pending'
-                  ? 'badge badge-pending'
-                  : initialValues?.sync_status === 'error'
-                  ? 'badge badge-error'
-                  : 'badge badge-synced'
-              }
-            >
-              {initialValues?.sync_status || 'draft'}
-            </span>
-          </div>
-
-          <div className="field" style={{ marginBottom: 12 }}>
-            <label>Shopify Product ID</label>
-            <input
-              className="input"
-              value={initialValues?.shopify_product_id || ''}
-              readOnly
-            />
-          </div>
-
-          <div className="field" style={{ marginBottom: 12 }}>
-            <label>Shopify Variant ID</label>
-            <input
-              className="input"
-              value={initialValues?.shopify_variant_id || ''}
-              readOnly
-            />
-          </div>
-
-          {initialValues?.sync_status === 'error' && (
-            <div className="warning-box">
-              Sync error detected. Review credentials or bike data, then sync again.
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-            <button
-              className="secondary-btn"
-              type="button"
-              onClick={() => window.history.back()}
-            >
-              Cancel
-            </button>
-            <button className="primary-btn" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        </div>
+        )}
       </div>
-    </form>
+    </>
   );
 }
