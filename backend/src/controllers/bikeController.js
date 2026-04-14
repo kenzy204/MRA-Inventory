@@ -1,6 +1,16 @@
 const bikeService = require('../services/bikeService');
 const syncService = require('../services/syncService');
 
+function buildImageUrl(filename) {
+  const baseUrl = String(process.env.PUBLIC_BACKEND_URL || '').replace(/\/+$/, '');
+
+  if (!baseUrl) {
+    throw new Error('PUBLIC_BACKEND_URL is missing');
+  }
+
+  return `${baseUrl}/uploads/${filename}`;
+}
+
 async function getBikes(req, res) {
   try {
     const bikes = await bikeService.getAllBikes();
@@ -20,10 +30,16 @@ async function getBike(req, res) {
   }
 }
 
-
 async function createBike(req, res) {
   try {
     const id = await bikeService.createBike(req.body);
+
+    if (Array.isArray(req.files) && req.files.length > 0) {
+      for (const file of req.files) {
+        const imageUrl = buildImageUrl(file.filename);
+        await bikeService.addBikeImage(id, imageUrl);
+      }
+    }
 
     let syncErrorMessage = null;
 
