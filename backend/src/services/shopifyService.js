@@ -383,7 +383,7 @@ function buildPublicImageUrl(imageUrl) {
   return `${baseUrl}${normalizedPath}`;
 }
 
-function buildProductMedia(bike) {
+function buildProductFiles(bike) {
   if (!Array.isArray(bike.images) || bike.images.length === 0) {
     return [];
   }
@@ -396,16 +396,24 @@ function buildProductMedia(bike) {
       if (!originalSource) return null;
 
       const ext = path.extname(img.image_url || '').toLowerCase();
-      const supportedImageExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff'];
+      const supportedImageExts = [
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.webp',
+        '.gif',
+        '.bmp',
+        '.tiff'
+      ];
 
       if (ext && !supportedImageExts.includes(ext)) {
         return null;
       }
 
-    return {
-  originalSource,
-  alt: `${buildProductTitle(bike)} image ${index + 1}`
-};
+      return {
+        originalSource,
+        alt: `${buildProductTitle(bike)} image ${index + 1}`
+      };
     })
     .filter(Boolean);
 }
@@ -469,7 +477,7 @@ async function upsertProductWithProductSet(bike) {
     }
   `;
 
- const files = buildProductFiles(bike);
+  const files = buildProductFiles(bike);
 
   const variables = {
     synchronous: true,
