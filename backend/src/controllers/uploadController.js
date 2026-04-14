@@ -8,7 +8,7 @@ async function uploadBikeImage(req, res) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const imageUrl = `${process.env.PUBLIC_BACKEND_URL}/uploads/${req.file.filename}`;
 
     await bikeService.addBikeImage(bikeId, imageUrl);
 
