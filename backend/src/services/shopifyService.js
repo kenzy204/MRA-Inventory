@@ -47,62 +47,97 @@ async function shopifyGraphQL(query, variables = {}) {
   return response.data.data;
 }
 
+function pushMetafield(metafields, key, type, value) {
+  if (value === undefined || value === null || value === '') return;
+
+  metafields.push({
+    namespace: 'custom',
+    key,
+    type,
+    value: String(value)
+  });
+}
+
+function pushBooleanMetafield(metafields, key, value) {
+  if (value === undefined || value === null || value === '') return;
+
+  let normalized = value;
+
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase().trim();
+
+    if (['ja', 'yes', 'true', '1'].includes(lower)) normalized = true;
+    else if (['nee', 'no', 'false', '0'].includes(lower)) normalized = false;
+  }
+
+  metafields.push({
+    namespace: 'custom',
+    key,
+    type: 'boolean',
+    value: normalized ? 'true' : 'false'
+  });
+}
+
 function buildProductMetafields(bike) {
   const metafields = [];
 
-  if (bike.condition) {
-    metafields.push({
-      namespace: 'custom',
-      key: 'condition',
-      type: 'single_line_text_field',
-      value: String(bike.condition)
-    });
-  }
+  // Aandrijving
+  pushMetafield(metafields, 'merk', 'single_line_text_field', bike.merk);
+  pushMetafield(metafields, 'type', 'single_line_text_field', bike.type);
+  pushMetafield(metafields, 'positie', 'single_line_text_field', bike.positie);
+  pushMetafield(metafields, 'koppel_motor_nm', 'number_decimal', bike.koppel_motor_nm);
+  pushMetafield(metafields, 'type-aandrijving', 'multi_line_text_field', bike.type_aandrijving);
 
-  if (bike.motor_type) {
-    metafields.push({
-      namespace: 'custom',
-      key: 'motor_type',
-      type: 'single_line_text_field',
-      value: String(bike.motor_type)
-    });
-  }
+  // Accu
+  pushMetafield(metafields, 'accu_capaciteit_wh', 'number_integer', bike.accu_capaciteit_wh);
+  pushMetafield(metafields, 'accu_positie', 'single_line_text_field', bike.accu_positie);
+  pushBooleanMetafield(metafields, 'accu_uitneembaar', bike.accu_uitneembaar);
+  pushMetafield(metafields, 'accu', 'multi_line_text_field', bike.accu);
 
-  if (bike.battery_capacity) {
-    metafields.push({
-      namespace: 'custom',
-      key: 'battery_capacity',
-      type: 'single_line_text_field',
-      value: String(bike.battery_capacity)
-    });
-  }
+  // Rem
+  pushMetafield(metafields, 'type-rem', 'single_line_text_field', bike.type_remmen);
+  pushMetafield(metafields, 'merk_remmen', 'single_line_text_field', bike.merk_remmen);
+  pushMetafield(metafields, 'remmen', 'multi_line_text_field', bike.remmen);
 
-  if (bike.frame_size) {
-    metafields.push({
-      namespace: 'custom',
-      key: 'frame_size',
-      type: 'single_line_text_field',
-      value: String(bike.frame_size)
-    });
-  }
+  // Display
+  pushMetafield(metafields, 'display_merk', 'single_line_text_field', bike.display_merk);
+  pushMetafield(metafields, 'display_type', 'single_line_text_field', bike.display_type);
+  pushMetafield(metafields, 'display', 'multi_line_text_field', bike.display);
 
-  if (bike.range_km !== null && bike.range_km !== undefined && bike.range_km !== '') {
-    metafields.push({
-      namespace: 'custom',
-      key: 'range_km',
-      type: 'number_integer',
-      value: String(Number(bike.range_km))
-    });
-  }
+  // Vering
+  pushBooleanMetafield(metafields, 'voorvork_vering_aanwezig', bike.voorvork_vering_aanwezig);
+  pushMetafield(metafields, 'voorvork_vering_type', 'single_line_text_field', bike.voorvork_vering_type);
+  pushBooleanMetafield(metafields, 'verende_zadelpen_aanwezig', bike.verende_zadelpen_aanwezig);
+  pushMetafield(metafields, 'verende_zadelpen_type', 'single_line_text_field', bike.verende_zadelpen_type);
+  pushBooleanMetafield(metafields, 'zadelvering', bike.zadelvering);
+  pushMetafield(metafields, 'vering', 'multi_line_text_field', bike.vering);
 
-  if (bike.mileage !== null && bike.mileage !== undefined && bike.mileage !== '') {
-    metafields.push({
-      namespace: 'custom',
-      key: 'mileage',
-      type: 'number_integer',
-      value: String(Number(bike.mileage))
-    });
-  }
+  // Banden
+  pushMetafield(metafields, 'bandmerk', 'single_line_text_field', bike.bandmerk);
+  pushMetafield(metafields, 'bandmodel', 'single_line_text_field', bike.bandmodel);
+  pushBooleanMetafield(metafields, 'anti_lek_banden', bike.anti_lek_banden);
+  pushMetafield(metafields, 'bandbreedte', 'single_line_text_field', bike.bandbreedte);
+  pushMetafield(metafields, 'banden', 'multi_line_text_field', bike.banden);
+
+  // Frame
+  pushMetafield(metafields, 'frame_size', 'number_decimal', bike.frame_size);
+  pushMetafield(metafields, 'type_frame', 'single_line_text_field', bike.type_frame);
+  pushMetafield(metafields, 'framemateriaal', 'single_line_text_field', bike.framemateriaal);
+  pushMetafield(metafields, 'frame', 'multi_line_text_field', bike.frame);
+
+  // Wielen
+  pushMetafield(metafields, 'wielmaat', 'single_line_text_field', bike.wielmaat);
+
+  // Levering
+  pushMetafield(metafields, 'aantal_sleutels', 'number_integer', bike.aantal_sleutels);
+  pushBooleanMetafield(metafields, 'fabrieksgarantie', bike.fabrieksgarantie);
+
+  // Gebruik
+  pushMetafield(metafields, 'kilometerstand', 'number_integer', bike.kilometerstand);
+  pushMetafield(metafields, 'km_s', 'single_line_text_field', bike.km_s);
+
+  // Staat van de fiets
+  pushMetafield(metafields, 'condition', 'single_line_text_field', bike.condition);
 
   return metafields;
 }
@@ -175,10 +210,6 @@ function buildSafeFilename(bike, index, imageUrl) {
   return `${safeTitle}-${index + 1}${ext}`;
 }
 
-/**
- * ProductSetInput.files => FileSetInput[]
- * يستخدم وقت create / sync أساسي
- */
 function buildProductFiles(bike) {
   if (!Array.isArray(bike.images) || bike.images.length === 0) {
     return [];
@@ -204,10 +235,6 @@ function buildProductFiles(bike) {
     .filter(Boolean);
 }
 
-/**
- * productUpdate(media: [CreateMediaInput!])
- * يستخدم لإضافة صور جديدة لمنتج موجود
- */
 function buildCreateMediaInputs(bike, images) {
   if (!Array.isArray(images) || images.length === 0) {
     return [];
@@ -357,10 +384,6 @@ async function upsertProductWithProductSet(bike) {
   };
 }
 
-/**
- * إضافة صور جديدة فقط لمنتج موجود في Shopify
- * مفيد جدًا بعد upload صورة إضافية من صفحة edit
- */
 async function appendImagesToExistingProduct(productId, bike, images) {
   if (!productId) {
     throw new Error('Missing Shopify product ID');
