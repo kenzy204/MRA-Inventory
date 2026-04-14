@@ -1,81 +1,3 @@
-// import { useEffect, useState } from 'react';
-// import { Link } from 'react-router-dom';
-// import { deleteBike, getBikes, syncBike } from '../api/bikes';
-
-// export default function BikesPage() {
-//   const [bikes, setBikes] = useState([]);
-//   const [error, setError] = useState('');
-
-//   async function load() {
-//     try {
-//       const data = await getBikes();
-//       setBikes(data);
-//       setError('');
-//     } catch (err) {
-//       setError(err?.response?.data?.message || 'Failed to load bikes');
-//     }
-//   }
-
-//   useEffect(() => {
-//     load();
-//   }, []);
-
-//   async function handleDelete(id) {
-//     if (!window.confirm('Delete this bike?')) return;
-//     await deleteBike(id);
-//     load();
-//   }
-
-//   async function handleSync(id) {
-//     await syncBike(id);
-//     load();
-//   }
-
-//   return (
-//     <div>
-//       <h1>Bikes</h1>
-//       {error && <p style={{ color: 'red' }}>{error}</p>}
-
-//       <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse' }}>
-//         <thead>
-//           <tr>
-//             <th>ID</th>
-//             <th>Brand</th>
-//             <th>Model</th>
-//             <th>Price</th>
-//             <th>Stock</th>
-//             <th>Sync Status</th>
-//             <th>Actions</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {bikes.map((bike) => (
-//             <tr key={bike.id}>
-//               <td>{bike.id}</td>
-//               <td>{bike.brand}</td>
-//               <td>{bike.model}</td>
-//               <td>{bike.price}</td>
-//               <td>{bike.stock}</td>
-//               <td>{bike.sync_status}</td>
-//               <td>
-//                 <Link to={`/bikes/${bike.id}/edit`}>Edit</Link>{' | '}
-//                 <button onClick={() => handleSync(bike.id)}>Sync</button>{' | '}
-//                 <button onClick={() => handleDelete(bike.id)}>Delete</button>
-//               </td>
-//             </tr>
-//           ))}
-//           {bikes.length === 0 && (
-//             <tr>
-//               <td colSpan="7">No bikes found</td>
-//             </tr>
-//           )}
-//         </tbody>
-//       </table>
-//     </div>
-//   );
-// }
-
-
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { deleteBike, getBikes, syncBike } from '../api/bikes';
@@ -84,6 +6,10 @@ export default function BikesPage() {
   const [bikes, setBikes] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [brandFilter, setBrandFilter] = useState('all');
+  const [conditionFilter, setConditionFilter] = useState('all');
+  const [stockFilter, setStockFilter] = useState('all');
 
   async function load() {
     try {
@@ -113,6 +39,31 @@ export default function BikesPage() {
     await load();
   }
 
+  const brandOptions = useMemo(() => {
+    return [...new Set(bikes.map((bike) => bike.brand).filter(Boolean))];
+  }, [bikes]);
+
+  const filteredBikes = useMemo(() => {
+    return bikes.filter((bike) => {
+      const title = bike.title || `${bike.brand || ''} ${bike.model || ''}`;
+      const haystack = `${title} ${bike.model || ''} ${bike.sku || ''} ${bike.brand || ''}`.toLowerCase();
+
+      const matchesSearch = haystack.includes(search.toLowerCase());
+      const matchesBrand = brandFilter === 'all' || bike.brand === brandFilter;
+      const matchesCondition =
+        conditionFilter === 'all' || String(bike.condition || '').toLowerCase() === conditionFilter;
+
+      const stockValue = Number(bike.stock || 0);
+      const matchesStock =
+        stockFilter === 'all' ||
+        (stockFilter === 'in-stock' && stockValue > 3) ||
+        (stockFilter === 'low' && stockValue > 0 && stockValue <= 3) ||
+        (stockFilter === 'out' && stockValue <= 0);
+
+      return matchesSearch && matchesBrand && matchesCondition && matchesStock;
+    });
+  }, [bikes, search, brandFilter, conditionFilter, stockFilter]);
+
   const stats = useMemo(() => {
     const totalStock = bikes.reduce((sum, bike) => sum + Number(bike.stock || 0), 0);
     const lowStock = bikes.filter((bike) => Number(bike.stock || 0) > 0 && Number(bike.stock || 0) <= 3).length;
@@ -122,7 +73,7 @@ export default function BikesPage() {
 
     return {
       totalStock,
-      inTransit: 84,
+      activeListings: bikes.length,
       syncHealthy,
       lowStock
     };
@@ -142,6 +93,13 @@ export default function BikesPage() {
     return 'badge badge-synced';
   }
 
+  function imageSrc(imageUrl) {
+    if (!imageUrl) return '';
+    return /^https?:\/\//i.test(imageUrl)
+      ? imageUrl
+      : `${import.meta.env.VITE_BACKEND_URL}${imageUrl}`;
+  }
+
   return (
     <>
       <div className="card-grid">
@@ -151,8 +109,8 @@ export default function BikesPage() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">In Transit</div>
-          <div className="stat-value">{stats.inTransit}</div>
+          <div className="stat-label">Live Listings</div>
+          <div className="stat-value">{stats.activeListings}</div>
         </div>
 
         <div className="stat-card">
@@ -168,17 +126,52 @@ export default function BikesPage() {
 
       <div className="panel">
         <div className="filters-row">
-          <input className="input" placeholder="Filter by title, model or SKU..." />
-          <select className="select">
-            <option>All Brands</option>
+          <input
+            className="input"
+            placeholder="Search by title, model, brand or SKU..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <select className="select" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
+            <option value="all">All Brands</option>
+            {brandOptions.map((brand) => (
+              <option key={brand} value={brand}>
+                {brand}
+              </option>
+            ))}
           </select>
-          <select className="select">
-            <option>Condition</option>
+
+          <select
+            className="select"
+            value={conditionFilter}
+            onChange={(e) => setConditionFilter(e.target.value)}
+          >
+            <option value="all">Condition</option>
+            <option value="used">Used</option>
+            <option value="new">New</option>
+            <option value="demo">Demo</option>
           </select>
-          <select className="select">
-            <option>Stock Status</option>
+
+          <select className="select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
+            <option value="all">Stock Status</option>
+            <option value="in-stock">In Stock</option>
+            <option value="low">Low Stock</option>
+            <option value="out">Out of Stock</option>
           </select>
-          <button className="secondary-btn" type="button">⚙</button>
+
+          <button
+            className="secondary-btn"
+            type="button"
+            onClick={() => {
+              setSearch('');
+              setBrandFilter('all');
+              setConditionFilter('all');
+              setStockFilter('all');
+            }}
+          >
+            ↺
+          </button>
         </div>
 
         {error && <p className="error-text">{error}</p>}
@@ -189,19 +182,20 @@ export default function BikesPage() {
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>Image</th>
-                  <th>Title / Model</th>
+                  <th>Bike</th>
                   <th>Brand</th>
                   <th>Price</th>
                   <th>Stock</th>
-                  <th>Mileage</th>
+                  <th>Kilometerstand</th>
                   <th>Shopify Sync</th>
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {bikes.map((bike) => {
+                {filteredBikes.map((bike) => {
                   const firstImage = bike.images?.[0]?.image_url;
+                  const displayTitle = bike.title || `${bike.brand || ''} ${bike.model || ''}`.trim();
 
                   return (
                     <tr key={bike.id}>
@@ -210,34 +204,40 @@ export default function BikesPage() {
                           {firstImage ? (
                             <img
                               className="bike-thumb"
-                              src={`${import.meta.env.VITE_BACKEND_URL}${firstImage}`}
-                              alt={bike.title || `${bike.brand} ${bike.model}`}
+                              src={imageSrc(firstImage)}
+                              alt={displayTitle}
                             />
                           ) : (
                             <div className="bike-thumb-placeholder" />
                           )}
+
+                          <div>
+                            <div className="bike-title">{displayTitle}</div>
+                            <div className="bike-subtitle">
+                              {bike.model || 'No model'} {bike.sku ? `• ${bike.sku}` : ''}
+                            </div>
+                          </div>
                         </div>
                       </td>
 
-                      <td>
-                        <div className="bike-title">{bike.title || `${bike.brand} ${bike.model}`}</div>
-                        <div className="bike-subtitle">{bike.model}</div>
-                      </td>
-
-                      <td>{bike.brand}</td>
+                      <td>{bike.brand || '-'}</td>
 
                       <td className="value-strong">
-                        ${Number(bike.price || 0).toLocaleString()}
+                        €{Number(bike.price || 0).toLocaleString()}
                       </td>
 
                       <td>
                         <span className="value-strong">{bike.stock}</span>
                         <span className={`stock-indicator ${stockClass(bike.stock)}`}>
-                          {Number(bike.stock || 0) <= 0 ? 'OUT' : Number(bike.stock || 0) <= 3 ? 'LOW' : 'IN STOCK'}
+                          {Number(bike.stock || 0) <= 0
+                            ? 'OUT'
+                            : Number(bike.stock || 0) <= 3
+                            ? 'LOW'
+                            : 'IN STOCK'}
                         </span>
                       </td>
 
-                      <td>{bike.mileage || 0} mi</td>
+                      <td>{bike.kilometerstand || 0} km</td>
 
                       <td>
                         <span className={syncBadge(bike.sync_status)}>
@@ -262,9 +262,9 @@ export default function BikesPage() {
                   );
                 })}
 
-                {bikes.length === 0 && !loading && (
+                {filteredBikes.length === 0 && !loading && (
                   <tr>
-                    <td colSpan="8">No bikes found</td>
+                    <td colSpan="7">No bikes found</td>
                   </tr>
                 )}
               </tbody>
