@@ -402,11 +402,10 @@ function buildProductMedia(bike) {
         return null;
       }
 
-      return {
-        originalSource,
-        alt: `${buildProductTitle(bike)} image ${index + 1}`,
-        mediaContentType: 'IMAGE'
-      };
+    return {
+  originalSource,
+  alt: `${buildProductTitle(bike)} image ${index + 1}`
+};
     })
     .filter(Boolean);
 }
@@ -470,7 +469,7 @@ async function upsertProductWithProductSet(bike) {
     }
   `;
 
-  const media = buildProductMedia(bike);
+ const files = buildProductFiles(bike);
 
   const variables = {
     synchronous: true,
@@ -509,7 +508,7 @@ async function upsertProductWithProductSet(bike) {
           ]
         }
       ],
-      files: media
+      files
     }
   };
 
