@@ -133,7 +133,7 @@ export default function BikeForm({
         await onImageUpload(bikeId, file);
       }
       setImages([]);
-      alert('Images uploaded');
+      alert('Afbeeldingen geüpload');
     } finally {
       setUploading(false);
     }
@@ -179,16 +179,16 @@ export default function BikeForm({
     <form onSubmit={handleSubmit} className="form-grid">
       <div className="form-stack">
         <div className="form-card">
-          <h3>Asset Management</h3>
+          <h3>Afbeeldingen</h3>
 
           <div className="asset-gallery">
             <div className="asset-main">
-              {renderImage(mainImage, 'Bike main', 'Main image preview')}
+              {renderImage(mainImage, 'Hoofdafbeelding fiets', 'Voorbeeld hoofdafbeelding')}
             </div>
 
             <div className="asset-side">
-              {renderImage(sideImages[0], 'Bike side', 'Gallery image')}
-              {renderImage(sideImages[1], 'Bike side', 'Add media')}
+              {renderImage(sideImages[0], 'Extra afbeelding fiets', 'Galerijafbeelding')}
+              {renderImage(sideImages[1], 'Extra afbeelding fiets', 'Media toevoegen')}
             </div>
           </div>
 
@@ -203,7 +203,7 @@ export default function BikeForm({
               <input type="file" multiple accept="image/*" onChange={handleImagesChange} />
 
               {images.length > 0 && (
-                <div style={{ marginTop: 12 }}>{images.length} image(s) selected</div>
+                <div style={{ marginTop: 12 }}>{images.length} afbeelding(en) geselecteerd</div>
               )}
 
               {bikeId && (
@@ -214,7 +214,7 @@ export default function BikeForm({
                     onClick={handleUploadAdditionalImages}
                     disabled={images.length === 0 || uploading}
                   >
-                    {uploading ? 'Uploading...' : 'Upload Additional Images'}
+                    {uploading ? 'Uploaden...' : 'Extra afbeeldingen uploaden'}
                   </button>
                 </div>
               )}
@@ -226,7 +226,7 @@ export default function BikeForm({
           <h3>Algemeen</h3>
 
           <div className="field">
-            <label>Product titel</label>
+            <label>Producttitel</label>
             <input
               className="input"
               name="title"
@@ -264,7 +264,7 @@ export default function BikeForm({
 
           <div className="field-grid-2" style={{ marginTop: 14 }}>
             <div className="field">
-              <label>Brand</label>
+              <label>Merk (intern)</label>
               <input className="input" name="brand" value={form.brand ?? ''} onChange={handleChange} />
             </div>
             <div className="field">
@@ -559,13 +559,13 @@ export default function BikeForm({
         </div>
 
         <div className="side-status-card">
-          <h4 style={{ marginTop: 0 }}>Shopify Status</h4>
+          <h4 style={{ marginTop: 0 }}>Shopify-status</h4>
 
           <div className="side-status-meta">
-            Last sync:{' '}
+            Laatste synchronisatie:{' '}
             {initialValues?.last_synced_at
               ? new Date(initialValues.last_synced_at).toLocaleString()
-              : 'Not synced yet'}
+              : 'Nog niet gesynchroniseerd'}
           </div>
 
           <div style={{ marginBottom: 14 }}>
@@ -580,7 +580,7 @@ export default function BikeForm({
                   : 'badge badge-synced'
               }
             >
-              {initialValues?.sync_status || 'draft'}
+              {initialValues?.sync_status || 'concept'}
             </span>
           </div>
 
@@ -596,16 +596,16 @@ export default function BikeForm({
 
           {initialValues?.sync_status === 'error' && (
             <div className="warning-box">
-              Sync error detected. Review the data and try synchronizing again.
+              Er is een synchronisatiefout opgetreden. Controleer de gegevens en probeer opnieuw.
             </div>
           )}
 
           <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
             <button className="secondary-btn" type="button" onClick={() => window.history.back()}>
-              Cancel
+              Annuleren
             </button>
             <button className="primary-btn" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? 'Opslaan...' : 'Wijzigingen opslaan'}
             </button>
           </div>
         </div>
