@@ -1,100 +1,3 @@
-// import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
-// import LoginPage from './pages/LoginPage';
-// import BikesPage from './pages/BikesPage';
-// import BikeCreatePage from './pages/BikeCreatePage';
-// import BikeEditPage from './pages/BikeEditPage';
-// import SettingsPage from './pages/SettingsPage';
-// import SyncLogsPage from './pages/SyncLogsPage';
-// import ProtectedRoute from './components/ProtectedRoute';
-
-// function Layout({ children }) {
-//   const navigate = useNavigate();
-
-//   function logout() {
-//     localStorage.removeItem('token');
-//     navigate('/login');
-//   }
-
-//   return (
-//     <div style={{ padding: 24, fontFamily: 'Arial, sans-serif' }}>
-//       <nav style={{ display: 'flex', gap: 16, marginBottom: 24, alignItems: 'center' }}>
-//         <Link to="/">Bikes</Link>
-//         <Link to="/bikes/new">Create Bike</Link>
-//         <Link to="/settings">Settings</Link>
-//         <Link to="/sync-logs">Sync Logs</Link>
-//         <button onClick={logout}>Logout</button>
-//       </nav>
-//       {children}
-//     </div>
-//   );
-// }
-
-// export default function App() {
-//   return (
-//     <BrowserRouter>
-//       <Routes>
-//         <Route path="/login" element={<LoginPage />} />
-
-//         <Route
-//           path="/"
-//           element={
-//             <ProtectedRoute>
-//               <Layout>
-//                 <BikesPage />
-//               </Layout>
-//             </ProtectedRoute>
-//           }
-//         />
-
-//         <Route
-//           path="/bikes/new"
-//           element={
-//             <ProtectedRoute>
-//               <Layout>
-//                 <BikeCreatePage />
-//               </Layout>
-//             </ProtectedRoute>
-//           }
-//         />
-
-//         <Route
-//           path="/bikes/:id/edit"
-//           element={
-//             <ProtectedRoute>
-//               <Layout>
-//                 <BikeEditPage />
-//               </Layout>
-//             </ProtectedRoute>
-//           }
-//         />
-
-//         <Route
-//           path="/settings"
-//           element={
-//             <ProtectedRoute>
-//               <Layout>
-//                 <SettingsPage />
-//               </Layout>
-//             </ProtectedRoute>
-//           }
-//         />
-
-//         <Route
-//           path="/sync-logs"
-//           element={
-//             <ProtectedRoute>
-//               <Layout>
-//                 <SyncLogsPage />
-//               </Layout>
-//             </ProtectedRoute>
-//           }
-//         />
-//       </Routes>
-//     </BrowserRouter>
-//   );
-// }
-
-
 import {
   BrowserRouter,
   Routes,
@@ -105,6 +8,7 @@ import {
   useNavigate,
   useLocation
 } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 import LoginPage from './pages/LoginPage';
 import BikesPage from './pages/BikesPage';
@@ -117,6 +21,11 @@ function ProtectedLayout() {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
@@ -131,35 +40,35 @@ function ProtectedLayout() {
     if (location.pathname === '/') {
       return {
         title: 'Inventory Overview',
-        subtitle: 'Manage and synchronize your high-performance e-bike fleet.'
+        subtitle: 'Manage your premium e-bike collection with clarity and speed.'
       };
     }
 
     if (location.pathname === '/bikes/new') {
       return {
         title: 'Add New Bike',
-        subtitle: 'Create a new bike model and prepare it for Shopify sync.'
+        subtitle: 'Create a new listing with specifications, media, and Shopify sync.'
       };
     }
 
     if (location.pathname.includes('/bikes/') && location.pathname.includes('/edit')) {
       return {
-        title: 'Edit Bike Model',
-        subtitle: 'Detailed specifications and asset management.'
+        title: 'Edit Bike',
+        subtitle: 'Update specifications, images, and synchronization details.'
       };
     }
 
     if (location.pathname === '/settings') {
       return {
-        title: 'Shopify Sync Settings',
-        subtitle: 'Manage integration credentials and synchronization health.'
+        title: 'Shopify Settings',
+        subtitle: 'Control store connection, credentials, and sync readiness.'
       };
     }
 
     if (location.pathname === '/sync-logs') {
       return {
         title: 'Sync Logs',
-        subtitle: 'Review recent synchronization events and errors.'
+        subtitle: 'Track recent sync activity and troubleshoot issues quickly.'
       };
     }
 
@@ -173,63 +82,89 @@ function ProtectedLayout() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <aside className={`sidebar ${mobileNavOpen ? 'open' : ''}`}>
         <div className="brand-block">
-          <h1 className="brand-title">Precision Ledger</h1>
-          <div className="brand-subtitle">E-Bike Warehouse</div>
+          <div className="brand-mark">M</div>
+          <div>
+            <h1 className="brand-title">MRA Inventory</h1>
+            <div className="brand-subtitle">Luxury E-Bike Management</div>
+          </div>
         </div>
 
         <div className="nav-section">
           <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-            Inventory
+            <span className="nav-icon">◻</span>
+            <span>Inventory</span>
+          </NavLink>
+
+          <NavLink
+            to="/bikes/new"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
+            <span className="nav-icon">＋</span>
+            <span>Add Bike</span>
           </NavLink>
 
           <NavLink
             to="/settings"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
-            Shopify Sync
+            <span className="nav-icon">⚙</span>
+            <span>Shopify Sync</span>
           </NavLink>
 
           <NavLink
             to="/sync-logs"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
-            Logs
+            <span className="nav-icon">☰</span>
+            <span>Logs</span>
           </NavLink>
         </div>
 
         <div className="sidebar-footer">
           <div className="sidebar-live-card">
-            <div className="sidebar-live-title">System Live</div>
-            <div className="sidebar-live-value">Last sync: 2 min ago</div>
+            <div className="sidebar-live-title">Workspace</div>
+            <div className="sidebar-live-value">Connected & ready</div>
+            <div className="sidebar-live-note">
+              Maintain bikes, media, and Shopify sync from one place.
+            </div>
           </div>
         </div>
       </aside>
 
+      {mobileNavOpen && (
+        <button
+          className="mobile-overlay"
+          type="button"
+          onClick={() => setMobileNavOpen(false)}
+          aria-label="Close menu"
+        />
+      )}
+
       <main className="main-area">
         <header className="topbar">
           <div className="topbar-left">
-            <div className="topbar-tabs">
-              <NavLink to="/" end className={({ isActive }) => `topbar-tab ${isActive ? 'active' : ''}`}>
-                Inventory
-              </NavLink>
-              <NavLink to="/settings" className={({ isActive }) => `topbar-tab ${isActive ? 'active' : ''}`}>
-                Shopify Sync
-              </NavLink>
-              <NavLink to="/settings" className={({ isActive }) => `topbar-tab ${isActive ? 'active' : ''}`}>
-  Settings
-</NavLink>
-<NavLink to="/sync-logs" className={({ isActive }) => `topbar-tab ${isActive ? 'active' : ''}`}>
-  Logs
-</NavLink>
+            <button
+              className="menu-btn"
+              type="button"
+              onClick={() => setMobileNavOpen((prev) => !prev)}
+            >
+              ☰
+            </button>
+
+            <div className="page-heading-inline">
+              <h1>{page.title}</h1>
+              <p>{page.subtitle}</p>
             </div>
           </div>
 
           <div className="topbar-right">
-            <input className="search-box" placeholder="Global Search..." />
-            <button className="icon-btn" type="button">🔔</button>
-            <button className="avatar-btn" type="button">A</button>
+            {location.pathname === '/' && (
+              <button className="primary-btn" onClick={() => navigate('/bikes/new')}>
+                + Add New Bike
+              </button>
+            )}
             <button className="secondary-btn" type="button" onClick={logout}>
               Logout
             </button>
@@ -237,19 +172,6 @@ function ProtectedLayout() {
         </header>
 
         <div className="page-content">
-          <div className="page-heading-row">
-            <div className="page-heading">
-              <h1>{page.title}</h1>
-              <p>{page.subtitle}</p>
-            </div>
-
-            {location.pathname === '/' && (
-              <button className="primary-btn" onClick={() => navigate('/bikes/new')}>
-                + Add New Bike
-              </button>
-            )}
-          </div>
-
           <Outlet />
         </div>
       </main>
