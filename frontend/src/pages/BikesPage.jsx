@@ -18,7 +18,7 @@ export default function BikesPage() {
       setBikes(data);
       setError('');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to load bikes');
+      setError(err?.response?.data?.message || 'Fietsen laden mislukt');
     } finally {
       setLoading(false);
     }
@@ -29,7 +29,7 @@ export default function BikesPage() {
   }, []);
 
   async function handleDelete(id) {
-    if (!window.confirm('Delete this bike?')) return;
+    if (!window.confirm('Weet je zeker dat je deze fiets wilt verwijderen?')) return;
     await deleteBike(id);
     await load();
   }
@@ -104,22 +104,22 @@ export default function BikesPage() {
     <>
       <div className="card-grid">
         <div className="stat-card">
-          <div className="stat-label">Total Stock</div>
+          <div className="stat-label">Totale voorraad</div>
           <div className="stat-value">{stats.totalStock}</div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">Live Listings</div>
+          <div className="stat-label">Actieve listings</div>
           <div className="stat-value">{stats.activeListings}</div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">Sync Health</div>
+          <div className="stat-label">Sync gezondheid</div>
           <div className="stat-value">{stats.syncHealthy}%</div>
         </div>
 
         <div className="stat-card dark">
-          <div className="stat-label">Low Stock Alerts</div>
+          <div className="stat-label">Lage voorraad</div>
           <div className="stat-value">{stats.lowStock}</div>
         </div>
       </div>
@@ -128,13 +128,13 @@ export default function BikesPage() {
         <div className="filters-row">
           <input
             className="input"
-            placeholder="Search by title, model, brand or SKU..."
+            placeholder="Zoek op titel, model, merk of SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
           <select className="select" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
-            <option value="all">All Brands</option>
+            <option value="all">Alle merken</option>
             {brandOptions.map((brand) => (
               <option key={brand} value={brand}>
                 {brand}
@@ -147,17 +147,17 @@ export default function BikesPage() {
             value={conditionFilter}
             onChange={(e) => setConditionFilter(e.target.value)}
           >
-            <option value="all">Condition</option>
-            <option value="used">Used</option>
-            <option value="new">New</option>
+            <option value="all">Conditie</option>
+            <option value="used">Gebruikt</option>
+            <option value="new">Nieuw</option>
             <option value="demo">Demo</option>
           </select>
 
           <select className="select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
-            <option value="all">Stock Status</option>
-            <option value="in-stock">In Stock</option>
-            <option value="low">Low Stock</option>
-            <option value="out">Out of Stock</option>
+            <option value="all">Voorraadstatus</option>
+            <option value="in-stock">Op voorraad</option>
+            <option value="low">Lage voorraad</option>
+            <option value="out">Uitverkocht</option>
           </select>
 
           <button
@@ -175,20 +175,20 @@ export default function BikesPage() {
         </div>
 
         {error && <p className="error-text">{error}</p>}
-        {loading && <p>Loading...</p>}
+        {loading && <p>Laden...</p>}
 
         {!loading && (
           <div className="table-wrap">
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>Bike</th>
-                  <th>Brand</th>
-                  <th>Price</th>
-                  <th>Stock</th>
+                  <th>Fiets</th>
+                  <th>Merk</th>
+                  <th>Prijs</th>
+                  <th>Voorraad</th>
                   <th>Kilometerstand</th>
-                  <th>Shopify Sync</th>
-                  <th>Actions</th>
+                  <th>Shopify sync</th>
+                  <th>Acties</th>
                 </tr>
               </thead>
 
@@ -214,7 +214,7 @@ export default function BikesPage() {
                           <div>
                             <div className="bike-title">{displayTitle}</div>
                             <div className="bike-subtitle">
-                              {bike.model || 'No model'} {bike.sku ? `• ${bike.sku}` : ''}
+                              {bike.model || 'Geen model'} {bike.sku ? `• ${bike.sku}` : ''}
                             </div>
                           </div>
                         </div>
@@ -230,10 +230,10 @@ export default function BikesPage() {
                         <span className="value-strong">{bike.stock}</span>
                         <span className={`stock-indicator ${stockClass(bike.stock)}`}>
                           {Number(bike.stock || 0) <= 0
-                            ? 'OUT'
+                            ? 'UIT'
                             : Number(bike.stock || 0) <= 3
-                            ? 'LOW'
-                            : 'IN STOCK'}
+                            ? 'LAAG'
+                            : 'OP VOORRAAD'}
                         </span>
                       </td>
 
@@ -241,20 +241,20 @@ export default function BikesPage() {
 
                       <td>
                         <span className={syncBadge(bike.sync_status)}>
-                          {bike.sync_status || 'unknown'}
+                          {bike.sync_status || 'onbekend'}
                         </span>
                       </td>
 
                       <td>
                         <div className="table-actions">
                           <Link className="table-btn" to={`/bikes/${bike.id}/edit`}>
-                            Edit
+                            Bewerken
                           </Link>
                           <button className="table-btn" onClick={() => handleSync(bike.id)}>
                             Sync
                           </button>
                           <button className="table-btn" onClick={() => handleDelete(bike.id)}>
-                            Delete
+                            Verwijderen
                           </button>
                         </div>
                       </td>
@@ -264,7 +264,7 @@ export default function BikesPage() {
 
                 {filteredBikes.length === 0 && !loading && (
                   <tr>
-                    <td colSpan="7">No bikes found</td>
+                    <td colSpan="7">Geen fietsen gevonden</td>
                   </tr>
                 )}
               </tbody>
