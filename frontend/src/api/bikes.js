@@ -11,7 +11,28 @@ export async function getBike(id) {
 }
 
 export async function createBike(payload) {
-  const { data } = await client.post('/bikes', payload);
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (key === 'images') return;
+
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+      formData.append(key, value.join(','));
+      return;
+    }
+
+    formData.append(key, value);
+  });
+
+  if (Array.isArray(payload.images)) {
+    payload.images.forEach((file) => {
+      formData.append('images', file);
+    });
+  }
+
+  const { data } = await client.post('/bikes', formData);
   return data;
 }
 
