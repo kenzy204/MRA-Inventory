@@ -5,15 +5,15 @@ async function uploadBikeImage(req, res) {
   try {
     const bikeId = Number(req.body.bikeId);
 
+    if (!Number.isInteger(bikeId) || bikeId <= 0) {
+      return res.status(400).json({ message: 'Invalid bikeId' });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    if (!process.env.PUBLIC_BACKEND_URL) {
-      return res.status(500).json({ message: 'PUBLIC_BACKEND_URL is missing' });
-    }
-
-    const imageUrl = `${String(process.env.PUBLIC_BACKEND_URL).replace(/\/+$/, '')}/uploads/${req.file.filename}`;
+    const imageUrl = req.file.path;
 
     await bikeService.addBikeImage(bikeId, imageUrl);
 
