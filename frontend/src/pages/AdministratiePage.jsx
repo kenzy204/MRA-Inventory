@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deleteClient, getClients } from '../api/clients';
+import AdminTableSkeleton from '../components/AdminTableSkeleton';
 
 const tabs = [
   { key: 'klanten', label: 'Klanten' },
