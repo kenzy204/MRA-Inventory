@@ -17,6 +17,12 @@ import BikeEditPage from './pages/BikeEditPage';
 import SettingsPage from './pages/SettingsPage';
 import SyncLogsPage from './pages/SyncLogsPage';
 
+import DashboardPage from './pages/DashboardPage';
+import AdministratiePage from './pages/AdministratiePage';
+import FietsverzekeringPage from './pages/FietsverzekeringPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
+import SocialMediaPage from './pages/SocialMediaPage';
+
 function ProtectedLayout() {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
@@ -39,36 +45,74 @@ function ProtectedLayout() {
   function getPageMeta() {
     if (location.pathname === '/') {
       return {
-        title: 'Voorraadoverzicht',
-        subtitle: 'Beheer je premium e-bike collectie snel, duidelijk en professioneel.'
+        title: 'Dashboard',
+        subtitle: 'Welkom bij CyclePro.'
+      };
+    }
+
+    if (location.pathname === '/fietsen') {
+      return {
+        title: 'Fietsen',
+        subtitle: 'Beheer je voorraad en premium e-bike collectie.'
+      };
+    }
+
+    if (location.pathname === '/administratie') {
+      return {
+        title: 'Administratie',
+        subtitle: 'Overzicht van rapportages en administratieve functies.'
+      };
+    }
+
+    if (location.pathname === '/fietsverzekering') {
+      return {
+        title: 'Fietsverzekering',
+        subtitle: 'Tools en informatie rondom verzekeringen.'
+      };
+    }
+
+    if (location.pathname === '/account/change-password') {
+      return {
+        title: 'Wachtwoord wijzigen',
+        subtitle: 'Werk je accountwachtwoord veilig bij.'
+      };
+    }
+
+    if (location.pathname === '/social-media') {
+      return {
+        title: 'Social media',
+        subtitle: 'Beheer je social media links en kanalen.'
+      };
+    }
+
+    if (location.pathname === '/settings') {
+      return {
+        title: 'MRA E-Bike Center',
+        subtitle: 'Beheer winkelkoppeling en instellingen.'
       };
     }
 
     if (location.pathname === '/bikes/new') {
       return {
         title: 'Nieuwe fiets toevoegen',
-        subtitle: 'Maak een nieuwe fiets aan met specificaties, media en Shopify-sync.'
+        subtitle: 'Maak een nieuwe fiets aan.'
       };
     }
 
-    if (location.pathname.includes('/bikes/') && location.pathname.includes('/edit')) {
+    if (
+      location.pathname.includes('/bikes/') &&
+      location.pathname.includes('/edit')
+    ) {
       return {
         title: 'Fiets bewerken',
-        subtitle: 'Werk specificaties, afbeeldingen en synchronisatiegegevens bij.'
-      };
-    }
-
-    if (location.pathname === '/settings') {
-      return {
-        title: 'Shopify-instellingen',
-        subtitle: 'Beheer winkelkoppeling, toegangsgegevens en synchronisatie.'
+        subtitle: 'Werk fietsgegevens en media bij.'
       };
     }
 
     if (location.pathname === '/sync-logs') {
       return {
         title: 'Synchronisatielogs',
-        subtitle: 'Bekijk recente synchronisaties en los fouten sneller op.'
+        subtitle: 'Bekijk recente synchronisaties.'
       };
     }
 
@@ -92,25 +136,64 @@ function ProtectedLayout() {
         </div>
 
         <div className="nav-section">
-          <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
             <span className="nav-icon">◻</span>
-            <span>Voorraad</span>
+            <span>Dashboard</span>
+          </NavLink>
+
+          <div className="nav-group-title">Voertuigen</div>
+
+          <NavLink
+            to="/fietsen"
+            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          >
+            <span>Fietsen</span>
           </NavLink>
 
           <NavLink
-            to="/bikes/new"
+            to="/administratie"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="nav-icon">＋</span>
-            <span>Nieuwe fiets</span>
+            <span className="nav-icon">◻</span>
+            <span>Administratie</span>
+          </NavLink>
+
+          <div className="nav-group-title">Tools</div>
+
+          <NavLink
+            to="/fietsverzekering"
+            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          >
+            <span>Fietsverzekering</span>
+          </NavLink>
+
+          <div className="nav-group-title">Mijn account</div>
+
+          <NavLink
+            to="/account/change-password"
+            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          >
+            <span>Wachtwoord wijzigen</span>
+          </NavLink>
+
+          <div className="nav-group-title">Instellingen</div>
+
+          <NavLink
+            to="/social-media"
+            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          >
+            <span>Social media</span>
           </NavLink>
 
           <NavLink
             to="/settings"
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
           >
-            <span className="nav-icon">⚙</span>
-            <span>Shopify Sync</span>
+            <span>MRA E-Bike Center</span>
           </NavLink>
 
           <NavLink
@@ -160,11 +243,12 @@ function ProtectedLayout() {
           </div>
 
           <div className="topbar-right">
-            {location.pathname === '/' && (
+            {['/', '/fietsen'].includes(location.pathname) && (
               <button className="primary-btn" onClick={() => navigate('/bikes/new')}>
                 + Nieuwe fiets
               </button>
             )}
+
             <button className="secondary-btn" type="button" onClick={logout}>
               Uitloggen
             </button>
@@ -186,10 +270,23 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
 
         <Route element={<ProtectedLayout />}>
-          <Route path="/" element={<BikesPage />} />
+          <Route path="/" element={<DashboardPage />} />
+
+          <Route path="/fietsen" element={<BikesPage />} />
           <Route path="/bikes/new" element={<BikeCreatePage />} />
           <Route path="/bikes/:id/edit" element={<BikeEditPage />} />
+
+          <Route path="/administratie" element={<AdministratiePage />} />
+          <Route path="/fietsverzekering" element={<FietsverzekeringPage />} />
+
+          <Route
+            path="/account/change-password"
+            element={<ChangePasswordPage />}
+          />
+
+          <Route path="/social-media" element={<SocialMediaPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+
           <Route path="/sync-logs" element={<SyncLogsPage />} />
         </Route>
       </Routes>
