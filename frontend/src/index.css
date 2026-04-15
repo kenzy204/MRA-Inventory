@@ -1406,3 +1406,35 @@ button {
     background-position: -200% 0;
   }
 }
+.skeleton-block {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    #f1ece6 0%,
+    #f8f4ee 50%,
+    #f1ece6 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.35s ease infinite;
+  border-radius: 14px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.table-skeleton {
+  margin-top: 16px;
+}
+
+.table-skeleton-head,
+.table-skeleton-row {
+  margin-bottom: 12px;
+}
