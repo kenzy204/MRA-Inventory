@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBikes, getSyncLogs } from '../api/bikes';
+import { getBikes } from '../api/bikes';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-
   const [bikes, setBikes] = useState([]);
-  const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -14,13 +12,8 @@ export default function DashboardPage() {
     async function load() {
       try {
         setLoading(true);
-        const [bikesData, logsData] = await Promise.all([
-          getBikes(),
-          getSyncLogs()
-        ]);
-
-        setBikes(Array.isArray(bikesData) ? bikesData : []);
-        setLogs(Array.isArray(logsData) ? logsData : []);
+        const data = await getBikes();
+        setBikes(Array.isArray(data) ? data : []);
         setError('');
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to load dashboard');
@@ -35,40 +28,32 @@ export default function DashboardPage() {
   const stats = useMemo(() => {
     const totalBikes = bikes.length;
     const totalStock = bikes.reduce((sum, bike) => sum + Number(bike.stock || 0), 0);
+
     const lowStockCount = bikes.filter((bike) => {
       const stock = Number(bike.stock || 0);
       return stock > 0 && stock <= 3;
     }).length;
+
+    const outOfStockCount = bikes.filter((bike) => Number(bike.stock || 0) <= 0).length;
     const syncErrorCount = bikes.filter((bike) => bike.sync_status === 'error').length;
+    const syncedCount = bikes.filter((bike) => bike.sync_status === 'success').length;
 
     return {
       totalBikes,
       totalStock,
       lowStockCount,
-      syncErrorCount
+      outOfStockCount,
+      syncErrorCount,
+      syncedCount
     };
   }, [bikes]);
 
-  const lowStockBikes = useMemo(() => {
-    return bikes
-      .filter((bike) => {
-        const stock = Number(bike.stock || 0);
-        return stock > 0 && stock <= 3;
-      })
-      .slice(0, 5);
-  }, [bikes]);
-
-  const syncErrorBikes = useMemo(() => {
-    return bikes
-      .filter((bike) => bike.sync_status === 'error')
-      .slice(0, 5);
-  }, [bikes]);
-
-  const recentLogs = useMemo(() => logs.slice(0, 5), [logs]);
-
-  function formatBikeTitle(bike) {
-    return bike.title || `${bike.brand || ''} ${bike.model || ''}`.trim() || `Bike ${bike.id}`;
-  }
+  const syncHealthLabel = useMemo(() => {
+    if (stats.totalBikes === 0) return 'Geen data';
+    if (stats.syncErrorCount === 0) return 'Gezond';
+    if (stats.syncErrorCount <= 3) return 'Let op';
+    return 'Actie nodig';
+  }, [stats]);
 
   if (loading) {
     return <p>Dashboard laden...</p>;
@@ -76,17 +61,32 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-grid">
-      <div className="panel">
-        <h2 style={{ marginTop: 0 }}>Welkom bij CyclePro</h2>
+      <div className="dashboard-hero panel">
+        <div className="dashboard-hero-text">
+          <h2 style={{ marginTop: 0, marginBottom: 10 }}>Welkom bij CyclePro</h2>
+          <p className="dashboard-intro">
+            Beheer je voorraad, instellingen en belangrijke acties vanuit één centrale plek.
+          </p>
 
-        <div className="announcement-box">
-          Goed nieuws: we bouwen aan een nieuwe inruiltool om het
-          inruilproces sneller, makkelijker en efficiënter te maken.
-          Binnenkort meer!
+          <div className="announcement-box">
+            Goed nieuws: we bouwen aan een nieuwe inruiltool om het
+            inruilproces sneller, makkelijker en efficiënter te maken.
+            Binnenkort meer!
+          </div>
         </div>
 
-        {error && <p className="error-text">{error}</p>}
+        <div className="dashboard-hero-actions">
+          <button className="primary-btn" onClick={() => navigate('/bikes/new')}>
+            + Nieuwe fiets
+          </button>
+
+          <button className="secondary-btn" onClick={() => navigate('/fietsen')}>
+            Bekijk fietsen
+          </button>
+        </div>
       </div>
+
+      {error && <p className="error-text">{error}</p>}
 
       <div className="card-grid">
         <div className="stat-card">
@@ -105,151 +105,103 @@ export default function DashboardPage() {
         </div>
 
         <div className="stat-card dark">
-          <div className="stat-label">Sync fouten</div>
-          <div className="stat-value">{stats.syncErrorCount}</div>
+          <div className="stat-label">Sync status</div>
+          <div className="stat-value" style={{ fontSize: 28 }}>{syncHealthLabel}</div>
         </div>
       </div>
 
-      <div className="dashboard-panels">
+      <div className="dashboard-panels-simple">
         <div className="panel">
           <div className="dashboard-section-head">
-            <h3>Actie vereist</h3>
-            <button
-              className="secondary-btn"
-              type="button"
-              onClick={() => navigate('/fietsen')}
-            >
-              Bekijk fietsen
+            <h3>Direct naar</h3>
+          </div>
+
+          <div className="dashboard-action-grid">
+            <button className="dashboard-action-card" onClick={() => navigate('/bikes/new')}>
+              <span className="dashboard-action-title">Nieuwe fiets</span>
+              <span className="dashboard-action-subtitle">
+                Voeg snel een nieuwe fiets toe aan je voorraad.
+              </span>
             </button>
-          </div>
 
-          <div className="dashboard-list-block">
-            <h4>Sync fouten</h4>
-            {syncErrorBikes.length === 0 ? (
-              <p className="dashboard-empty">Geen sync fouten.</p>
-            ) : (
-              <div className="dashboard-list">
-                {syncErrorBikes.map((bike) => (
-                  <button
-                    key={`sync-${bike.id}`}
-                    type="button"
-                    className="dashboard-list-item"
-                    onClick={() => navigate(`/bikes/${bike.id}/edit`)}
-                  >
-                    <div>
-                      <div className="dashboard-item-title">{formatBikeTitle(bike)}</div>
-                      <div className="dashboard-item-subtitle">
-                        Status: {bike.sync_status || 'onbekend'}
-                      </div>
-                    </div>
-                    <span className="badge badge-error">error</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+            <button className="dashboard-action-card" onClick={() => navigate('/fietsen')}>
+              <span className="dashboard-action-title">Fietsenoverzicht</span>
+              <span className="dashboard-action-subtitle">
+                Bekijk, filter en beheer alle fietsen.
+              </span>
+            </button>
 
-          <div className="dashboard-list-block">
-            <h4>Lage voorraad</h4>
-            {lowStockBikes.length === 0 ? (
-              <p className="dashboard-empty">Geen lage voorraad.</p>
-            ) : (
-              <div className="dashboard-list">
-                {lowStockBikes.map((bike) => (
-                  <button
-                    key={`stock-${bike.id}`}
-                    type="button"
-                    className="dashboard-list-item"
-                    onClick={() => navigate(`/bikes/${bike.id}/edit`)}
-                  >
-                    <div>
-                      <div className="dashboard-item-title">{formatBikeTitle(bike)}</div>
-                      <div className="dashboard-item-subtitle">
-                        SKU: {bike.sku || '-'}
-                      </div>
-                    </div>
-                    <span className="badge badge-pending">
-                      stock {Number(bike.stock || 0)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <button className="dashboard-action-card" onClick={() => navigate('/social-media')}>
+              <span className="dashboard-action-title">Social media</span>
+              <span className="dashboard-action-subtitle">
+                Beheer links en kanalen van je platform.
+              </span>
+            </button>
+
+            <button className="dashboard-action-card" onClick={() => navigate('/settings')}>
+              <span className="dashboard-action-title">MRA E-Bike Center</span>
+              <span className="dashboard-action-subtitle">
+                Open instellingen en koppelingsgegevens.
+              </span>
+            </button>
           </div>
         </div>
 
         <div className="panel">
           <div className="dashboard-section-head">
-            <h3>Recente synchronisaties</h3>
-            <button
-              className="secondary-btn"
-              type="button"
-              onClick={() => navigate('/sync-logs')}
-            >
+            <h3>Aandacht nodig</h3>
+          </div>
+
+          <div className="dashboard-focus-list">
+            <div className="dashboard-focus-row">
+              <div>
+                <div className="dashboard-item-title">Lage voorraad</div>
+                <div className="dashboard-item-subtitle">
+                  Fietsen met beperkte voorraad
+                </div>
+              </div>
+              <span className="badge badge-pending">{stats.lowStockCount}</span>
+            </div>
+
+            <div className="dashboard-focus-row">
+              <div>
+                <div className="dashboard-item-title">Uitverkocht</div>
+                <div className="dashboard-item-subtitle">
+                  Fietsen zonder beschikbare voorraad
+                </div>
+              </div>
+              <span className="badge badge-error">{stats.outOfStockCount}</span>
+            </div>
+
+            <div className="dashboard-focus-row">
+              <div>
+                <div className="dashboard-item-title">Sync fouten</div>
+                <div className="dashboard-item-subtitle">
+                  Items die controle nodig hebben
+                </div>
+              </div>
+              <span className="badge badge-error">{stats.syncErrorCount}</span>
+            </div>
+
+            <div className="dashboard-focus-row">
+              <div>
+                <div className="dashboard-item-title">Succesvol gesynchroniseerd</div>
+                <div className="dashboard-item-subtitle">
+                  Items met correcte koppeling
+                </div>
+              </div>
+              <span className="badge badge-success">{stats.syncedCount}</span>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button className="secondary-btn" onClick={() => navigate('/fietsen')}>
+              Open voorraad
+            </button>
+            <button className="secondary-btn" onClick={() => navigate('/sync-logs')}>
               Bekijk logs
             </button>
           </div>
-
-          {recentLogs.length === 0 ? (
-            <p className="dashboard-empty">Nog geen synchronisatielogs beschikbaar.</p>
-          ) : (
-            <div className="dashboard-log-list">
-              {recentLogs.map((log) => (
-                <div key={log.id} className="dashboard-log-item">
-                  <div className="dashboard-log-top">
-                    <strong>{log.action_type || 'sync'}</strong>
-                    <span
-                      className={
-                        log.sync_status === 'success'
-                          ? 'badge badge-success'
-                          : log.sync_status === 'pending'
-                          ? 'badge badge-pending'
-                          : 'badge badge-error'
-                      }
-                    >
-                      {log.sync_status}
-                    </span>
-                  </div>
-
-                  <div className="dashboard-item-subtitle">
-                    Bike ID: {log.bike_id ?? '-'}
-                  </div>
-
-                  <div className="dashboard-log-message">
-                    {log.message || 'Geen bericht'}
-                  </div>
-
-                  <div className="dashboard-log-date">
-                    {log.created_at ? new Date(log.created_at).toLocaleString() : '-'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="panel">
-        <div className="dashboard-section-head">
-          <h3>Snelle acties</h3>
-        </div>
-
-        <div className="dashboard-actions">
-          <button className="primary-btn" onClick={() => navigate('/bikes/new')}>
-            + Nieuwe fiets
-          </button>
-
-          <button className="secondary-btn" onClick={() => navigate('/fietsen')}>
-            Bekijk fietsen
-          </button>
-
-          <button className="secondary-btn" onClick={() => navigate('/settings')}>
-            MRA E-Bike Center
-          </button>
-
-          <button className="secondary-btn" onClick={() => navigate('/sync-logs')}>
-            Open logs
-          </button>
         </div>
       </div>
     </div>
