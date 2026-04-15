@@ -5,10 +5,10 @@ import { deleteClient, getClients } from '../api/clients';
 const tabs = [
   { key: 'klanten', label: 'Klanten' },
   { key: 'offertes', label: 'Offertes' },
-  { key: 'verkoopovereenkomsten', label: 'Verkoopovereenkomsten' },
+  //{ key: 'verkoopovereenkomsten', label: 'Verkoopovereenkomsten' },
   { key: 'facturen', label: 'Facturen' },
-  { key: 'creditfacturen', label: 'Creditfacturen' },
-  { key: 'inkoopverklaringen', label: 'Inkoopverklaringen' }
+  //{ key: 'creditfacturen', label: 'Creditfacturen' },
+  //{ key: 'inkoopverklaringen', label: 'Inkoopverklaringen' }
 ];
 
 export default function AdministratiePage() {
