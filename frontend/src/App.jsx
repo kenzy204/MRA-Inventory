@@ -410,49 +410,30 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
-        //<Route element={<ProtectedLayout />}>
-        //  <Route path="/" element={<DashboardPage />} />
+        <Route element={<ProtectedLayout />}>
+          <Route path="/" element={<DashboardPage />} />
 
-         // <Route path="/fietsen" element={<BikesPage />} />
-          //<Route path="/bikes/new" element={<BikeCreatePage />} />
-         // <Route path="/bikes/:id/edit" element={<BikeEditPage />} />
+          <Route path="/fietsen" element={<BikesPage />} />
+          <Route path="/bikes/new" element={<BikeCreatePage />} />
+          <Route path="/bikes/:id/edit" element={<BikeEditPage />} />
 
-         // <Route path="/administratie" element={<AdministratiePage />} />
-          //<Route path="/administratie/clients/new" element={<ClientCreatePage />} />
-         // <Route path="/administratie/clients/:id/edit" element={<ClientEditPage />} />
-         // <Route path="/fietsverzekering" element={<FietsverzekeringPage />} />
+          <Route path="/administratie" element={<AdministratiePage />} />
+          <Route path="/administratie/clients/new" element={<ClientCreatePage />} />
+          <Route path="/administratie/clients/:id/edit" element={<ClientEditPage />} />
+         <Route path="/fietsverzekering" element={<FietsverzekeringPage />} />
 
-         // <Route
-         //   path="/account/change-password"
-         //   element={<ChangePasswordPage />}
-         // />
+          <Route
+            path="/account/change-password"
+            element={<ChangePasswordPage />}
+          />
 
-          //<Route path="/social-media" element={<SocialMediaPage />} />
-          //<Route path="/settings" element={<SettingsPage />} />
+          <Route path="/social-media" element={<SocialMediaPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
 
-          //<Route path="/sync-logs" element={<SyncLogsPage />} />
-        //</Route>
+          <Route path="/sync-logs" element={<SyncLogsPage />} />
+        </Route>
 
-              <Route element={<ProtectedLayout />}>
-  <Route index element={<DashboardPage />} />
 
-  <Route path="fietsen" element={<BikesPage />} />
-  <Route path="bikes/new" element={<BikeCreatePage />} />
-  <Route path="bikes/:id/edit" element={<BikeEditPage />} />
-
-  <Route path="administratie" element={<AdministratiePage />} />
-  <Route path="administratie/clients/new" element={<ClientCreatePage />} />
-  <Route path="administratie/clients/:id/edit" element={<ClientEditPage />} />
-
-  <Route path="fietsverzekering" element={<FietsverzekeringPage />} />
-
-  <Route path="account/change-password" element={<ChangePasswordPage />} />
-
-  <Route path="social-media" element={<SocialMediaPage />} />
-  <Route path="settings" element={<SettingsPage />} />
-
-  <Route path="sync-logs" element={<SyncLogsPage />} />
-</Route>
       </Routes>
     </BrowserRouter>
   );
