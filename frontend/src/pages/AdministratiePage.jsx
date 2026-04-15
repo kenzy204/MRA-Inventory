@@ -97,9 +97,9 @@ export default function AdministratiePage() {
           </div>
 
           {error && <p className="error-text">{error}</p>}
-          {loading ? (
-            <p>Laden...</p>
-          ) : (
+        {loading ? (
+  <AdminTableSkeleton />
+) : (
             <div className="table-wrap">
               <table className="inventory-table">
                 <thead>
