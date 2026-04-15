@@ -150,10 +150,78 @@ async function deleteClient(req, res) {
     res.status(500).json({ message: error.message });
   }
 }
+async function updateClient(req, res) {
+  try {
+    const {
+      client_type,
+      aanhef,
+      voornaam,
+      achternaam,
+      bedrijfsnaam,
+      email,
+      telefoonnummer,
+      postcode,
+      huisnummer,
+      adres,
+      plaatsnaam,
+      land,
+      opmerkingen
+    } = req.body;
 
+    const pool = await getPool();
+
+    const result = await pool.query(
+      `
+        UPDATE clients
+        SET
+          client_type = $1,
+          aanhef = $2,
+          voornaam = $3,
+          achternaam = $4,
+          bedrijfsnaam = $5,
+          email = $6,
+          telefoonnummer = $7,
+          postcode = $8,
+          huisnummer = $9,
+          adres = $10,
+          plaatsnaam = $11,
+          land = $12,
+          opmerkingen = $13,
+          updated_at = NOW()
+        WHERE id = $14
+        RETURNING *
+      `,
+      [
+        client_type || 'particulier',
+        aanhef || null,
+        voornaam || null,
+        achternaam || null,
+        bedrijfsnaam || null,
+        email || null,
+        telefoonnummer || null,
+        postcode || null,
+        huisnummer || null,
+        adres || null,
+        plaatsnaam || null,
+        land || 'Nederland',
+        opmerkingen || null,
+        req.params.id
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 module.exports = {
   getClients,
   getClient,
   createClient,
+  updateClient,
   deleteClient
 };
