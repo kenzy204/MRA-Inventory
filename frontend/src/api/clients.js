@@ -16,6 +16,11 @@ export async function createClient(payload) {
   return data;
 }
 
+export async function updateClient(id, payload) {
+  const { data } = await client.put(`/clients/${id}`, payload);
+  return data;
+}
+
 export async function deleteClient(id) {
   const { data } = await client.delete(`/clients/${id}`);
   return data;
