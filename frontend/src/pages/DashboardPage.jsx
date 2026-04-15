@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getBikes } from '../api/bikes';
+import PageLoader from '../components/PageLoader';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -55,9 +56,10 @@ export default function DashboardPage() {
     return 'Actie nodig';
   }, [stats]);
 
-  if (loading) {
-    return <p>Dashboard laden...</p>;
-  }
+
+
+
+if (loading) return <PageLoader label="Dashboard laden..." />;
 
   return (
     <div className="dashboard-grid">
