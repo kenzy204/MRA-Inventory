@@ -857,3 +857,49 @@ button {
     width: 100%;
   }
 }
+
+
+
+.nav-group-title {
+  margin-top: 16px;
+  margin-bottom: 4px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.nav-sublink {
+  padding: 10px 14px 10px 34px;
+  border-radius: 14px;
+  font-weight: 600;
+  color: #3d372f;
+}
+
+.nav-sublink:hover {
+  background: rgba(49, 89, 77, 0.05);
+}
+
+.nav-sublink.active {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.announcement-box {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--accent-soft);
+  color: #5d4730;
+  font-weight: 600;
+  line-height: 1.6;
+}
