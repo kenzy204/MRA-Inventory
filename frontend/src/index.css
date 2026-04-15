@@ -1438,3 +1438,23 @@ button {
 .table-skeleton-row {
   margin-bottom: 12px;
 }
+.admin-skeleton {
+  margin-top: 4px;
+}
+
+.admin-skeleton-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 190px;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.admin-skeleton-table {
+  margin-top: 8px;
+}
+
+@media (max-width: 960px) {
+  .admin-skeleton-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
