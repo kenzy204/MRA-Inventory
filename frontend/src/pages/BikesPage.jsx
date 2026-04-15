@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { deleteBike, getBikes, syncBike } from '../api/bikes';
+import TableSkeleton from '../components/TableSkeleton';
 
 export default function BikesPage() {
   const [bikes, setBikes] = useState([]);
@@ -156,7 +157,7 @@ export default function BikesPage() {
         </div>
 
         {error && <p className="error-text">{error}</p>}
-        {loading && <p>Laden...</p>}
+        {loading && <TableSkeleton rows={6} />}
 
         {!loading && (
           <div className="table-wrap">
