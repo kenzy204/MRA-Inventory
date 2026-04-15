@@ -124,16 +124,24 @@ export default function AdministratiePage() {
                         <td>{item.email || '-'}</td>
                         <td>{item.plaatsnaam || '-'}</td>
                         <td>
-                          <div className="table-actions">
-                            <button
-                              className="table-btn"
-                              type="button"
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              Verwijderen
-                            </button>
-                          </div>
-                        </td>
+  <div className="table-actions">
+    <button
+      className="table-btn"
+      type="button"
+      onClick={() => navigate(`/administratie/clients/${item.id}/edit`)}
+    >
+      Bewerken
+    </button>
+
+    <button
+      className="table-btn"
+      type="button"
+      onClick={() => handleDelete(item.id)}
+    >
+      Verwijderen
+    </button>
+  </div>
+</td>
                       </tr>
                     );
                   })}
