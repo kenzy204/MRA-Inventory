@@ -102,27 +102,8 @@ export default function BikesPage() {
 
   return (
     <>
-      <div className="card-grid">
-        <div className="stat-card">
-          <div className="stat-label">Totale voorraad</div>
-          <div className="stat-value">{stats.totalStock}</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-label">Actieve listings</div>
-          <div className="stat-value">{stats.activeListings}</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-label">Sync gezondheid</div>
-          <div className="stat-value">{stats.syncHealthy}%</div>
-        </div>
-
-        <div className="stat-card dark">
-          <div className="stat-label">Lage voorraad</div>
-          <div className="stat-value">{stats.lowStock}</div>
-        </div>
-      </div>
+    
+       
 
       <div className="panel">
         <div className="filters-row">
