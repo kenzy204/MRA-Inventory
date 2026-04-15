@@ -38,6 +38,7 @@ import AdministratiePage from './pages/AdministratiePage';
 import FietsverzekeringPage from './pages/FietsverzekeringPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import SocialMediaPage from './pages/SocialMediaPage';
+import ClientCreatePage from './pages/ClientCreatePage';
 
 function ProtectedLayout() {
   const token = localStorage.getItem('token');
@@ -416,6 +417,7 @@ export default function App() {
           <Route path="/bikes/:id/edit" element={<BikeEditPage />} />
 
           <Route path="/administratie" element={<AdministratiePage />} />
+          <Route path="/administratie/clients/new" element={<ClientCreatePage />} />
           <Route path="/fietsverzekering" element={<FietsverzekeringPage />} />
 
           <Route
