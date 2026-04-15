@@ -8,7 +8,7 @@ import {
   useNavigate,
   useLocation
 } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import LoginPage from './pages/LoginPage';
 import BikesPage from './pages/BikesPage';
@@ -28,10 +28,27 @@ function ProtectedLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
 
   useEffect(() => {
     setMobileNavOpen(false);
   }, [location.pathname]);
+
+  const activeMenu = useMemo(() => {
+    if (location.pathname.startsWith('/fietsen')) return 'voertuigen';
+    if (location.pathname.startsWith('/account')) return 'account';
+    if (location.pathname.startsWith('/social-media') || location.pathname.startsWith('/settings')) {
+      return 'settings';
+    }
+    if (location.pathname.startsWith('/fietsverzekering')) return 'tools';
+    return null;
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (activeMenu) {
+      setOpenMenu(activeMenu);
+    }
+  }, [activeMenu]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
@@ -40,6 +57,10 @@ function ProtectedLayout() {
   function logout() {
     localStorage.removeItem('token');
     navigate('/login', { replace: true });
+  }
+
+  function toggleMenu(name) {
+    setOpenMenu((prev) => (prev === name ? null : name));
   }
 
   function getPageMeta() {
@@ -145,14 +166,25 @@ function ProtectedLayout() {
             <span>Dashboard</span>
           </NavLink>
 
-          <div className="nav-group-title">Voertuigen</div>
-
-          <NavLink
-            to="/fietsen"
-            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          <button
+            className={`nav-group-btn ${openMenu === 'voertuigen' ? 'open' : ''}`}
+            onClick={() => toggleMenu('voertuigen')}
+            type="button"
           >
-            <span>Fietsen</span>
-          </NavLink>
+            <span>Voertuigen</span>
+            <span className="nav-caret">{openMenu === 'voertuigen' ? '−' : '+'}</span>
+          </button>
+
+          {openMenu === 'voertuigen' && (
+            <div className="submenu">
+              <NavLink
+                to="/fietsen"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                Fietsen
+              </NavLink>
+            </div>
+          )}
 
           <NavLink
             to="/administratie"
@@ -162,39 +194,72 @@ function ProtectedLayout() {
             <span>Administratie</span>
           </NavLink>
 
-          <div className="nav-group-title">Tools</div>
-
-          <NavLink
-            to="/fietsverzekering"
-            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          <button
+            className={`nav-group-btn ${openMenu === 'tools' ? 'open' : ''}`}
+            onClick={() => toggleMenu('tools')}
+            type="button"
           >
-            <span>Fietsverzekering</span>
-          </NavLink>
+            <span>Tools</span>
+            <span className="nav-caret">{openMenu === 'tools' ? '−' : '+'}</span>
+          </button>
 
-          <div className="nav-group-title">Mijn account</div>
+          {openMenu === 'tools' && (
+            <div className="submenu">
+              <NavLink
+                to="/fietsverzekering"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                Fietsverzekering
+              </NavLink>
+            </div>
+          )}
 
-          <NavLink
-            to="/account/change-password"
-            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          <button
+            className={`nav-group-btn ${openMenu === 'account' ? 'open' : ''}`}
+            onClick={() => toggleMenu('account')}
+            type="button"
           >
-            <span>Wachtwoord wijzigen</span>
-          </NavLink>
+            <span>Mijn account</span>
+            <span className="nav-caret">{openMenu === 'account' ? '−' : '+'}</span>
+          </button>
 
-          <div className="nav-group-title">Instellingen</div>
+          {openMenu === 'account' && (
+            <div className="submenu">
+              <NavLink
+                to="/account/change-password"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                Wachtwoord wijzigen
+              </NavLink>
+            </div>
+          )}
 
-          <NavLink
-            to="/social-media"
-            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+          <button
+            className={`nav-group-btn ${openMenu === 'settings' ? 'open' : ''}`}
+            onClick={() => toggleMenu('settings')}
+            type="button"
           >
-            <span>Social media</span>
-          </NavLink>
+            <span>Instellingen</span>
+            <span className="nav-caret">{openMenu === 'settings' ? '−' : '+'}</span>
+          </button>
 
-          <NavLink
-            to="/settings"
-            className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
-          >
-            <span>MRA E-Bike Center</span>
-          </NavLink>
+          {openMenu === 'settings' && (
+            <div className="submenu">
+              <NavLink
+                to="/social-media"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                Social media
+              </NavLink>
+
+              <NavLink
+                to="/settings"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                MRA E-Bike Center
+              </NavLink>
+            </div>
+          )}
 
           <NavLink
             to="/sync-logs"
