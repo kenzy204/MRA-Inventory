@@ -1,217 +1,385 @@
-// import { useEffect, useState } from 'react';
-// import { getSettings, updateSettings } from '../api/settings';
-
-// export default function SettingsPage() {
-//   const [form, setForm] = useState({
-//     shopify_store_url: '',
-//     shopify_access_token: '',
-//     shopify_location_id: ''
-//   });
-
-//   useEffect(() => {
-//     getSettings().then((data) => {
-//       setForm({
-//         shopify_store_url: data.shopify_store_url || '',
-//         shopify_access_token: data.shopify_access_token || '',
-//         shopify_location_id: data.shopify_location_id || ''
-//       });
-//     });
-//   }, []);
-
-//   async function save(e) {
-//     e.preventDefault();
-//     await updateSettings(form);
-//     alert('Saved');
-//   }
-
-//   return (
-//     <div>
-//       <h1>Shopify Settings</h1>
-//       <form onSubmit={save}>
-//         <div style={{ marginBottom: 12 }}>
-//           <label>Store URL</label>
-//           <input
-//             style={{ width: '100%', padding: 8 }}
-//             placeholder="your-store.myshopify.com"
-//             value={form.shopify_store_url}
-//             onChange={(e) => setForm({ ...form, shopify_store_url: e.target.value })}
-//           />
-//         </div>
-
-//         <div style={{ marginBottom: 12 }}>
-//           <label>Access Token</label>
-//           <input
-//             style={{ width: '100%', padding: 8 }}
-//             value={form.shopify_access_token}
-//             onChange={(e) => setForm({ ...form, shopify_access_token: e.target.value })}
-//           />
-//         </div>
-
-//         <div style={{ marginBottom: 12 }}>
-//           <label>Location ID</label>
-//           <input
-//             style={{ width: '100%', padding: 8 }}
-//             value={form.shopify_location_id}
-//             onChange={(e) => setForm({ ...form, shopify_location_id: e.target.value })}
-//           />
-//         </div>
-
-//         <button type="submit">Save Settings</button>
-//       </form>
-//     </div>
-//   );
-// }
-
 import { useEffect, useState } from 'react';
-import { getSettings, updateSettings } from '../api/settings';
+import {
+  getProfile,
+  updateProfile,
+  getLocations,
+  createLocation,
+  deleteLocation,
+  getOpeningHours,
+  updateOpeningHours
+} from '../api/mraCenter';
+
+const days = [
+  { id: 1, label: 'Maandag' },
+  { id: 2, label: 'Dinsdag' },
+  { id: 3, label: 'Woensdag' },
+  { id: 4, label: 'Donderdag' },
+  { id: 5, label: 'Vrijdag' },
+  { id: 6, label: 'Zaterdag' },
+  { id: 7, label: 'Zondag' }
+];
 
 export default function SettingsPage() {
-  const [form, setForm] = useState({
-    shopify_store_url: '',
-    shopify_access_token: '',
-    shopify_location_id: ''
-  });
+  const [tab, setTab] = useState('general');
+
+  const [profile, setProfile] = useState({});
+  const [locations, setLocations] = useState([]);
+  const [hours, setHours] = useState([]);
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getSettings();
-        setForm({
-          shopify_store_url: data.shopify_store_url || '',
-          shopify_access_token: data.shopify_access_token || '',
-          shopify_location_id: data.shopify_location_id || ''
-        });
-      } catch (err) {
-        setError(err?.response?.data?.message || 'Failed to load settings');
-      } finally {
-        setLoading(false);
-      }
-    }
+  async function loadAll() {
+    try {
+      setLoading(true);
 
-    load();
+      const profileData = await getProfile();
+      const locationData = await getLocations();
+      const hoursData = await getOpeningHours(1);
+
+      setProfile(profileData || {});
+      setLocations(Array.isArray(locationData) ? locationData : []);
+      setHours(
+        Array.isArray(hoursData) && hoursData.length > 0
+          ? hoursData
+          : days.map((day) => ({
+              day_of_week: day.id,
+              open_time: '09:00',
+              close_time: '18:00'
+            }))
+      );
+
+      setError('');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to load settings');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadAll();
   }, []);
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({
+  function updateField(name, value) {
+    setProfile((prev) => ({
       ...prev,
       [name]: value
     }));
   }
 
-  async function save(e) {
-    e.preventDefault();
-    setSaving(true);
-    setMessage('');
-    setError('');
-
+  async function saveProfile() {
     try {
-      await updateSettings(form);
-      setMessage('Credentials saved successfully.');
+      await updateProfile(profile);
+      setMessage('Opgeslagen');
+      setTimeout(() => setMessage(''), 2000);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to save settings');
-    } finally {
-      setSaving(false);
+      setError(err?.response?.data?.message || 'Save failed');
     }
   }
 
-  if (loading) return <p>Loading settings...</p>;
+  async function addLocation() {
+    const name = prompt('Naam van sublocatie:');
+    if (!name) return;
+
+    await createLocation({ name, parent_id: 1 });
+    await loadAll();
+  }
+
+  async function removeLocation(id) {
+    const ok = window.confirm('Verwijderen?');
+    if (!ok) return;
+
+    await deleteLocation(id);
+    await loadAll();
+  }
+
+  function changeHour(index, field, value) {
+    setHours((prev) =>
+      prev.map((row, i) =>
+        i === index
+          ? {
+              ...row,
+              [field]: value
+            }
+          : row
+      )
+    );
+  }
+
+  async function saveHours() {
+    try {
+      await updateOpeningHours(1, hours);
+      setMessage('Openingstijden opgeslagen');
+      setTimeout(() => setMessage(''), 2000);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Save failed');
+    }
+  }
+
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="settings-grid">
-      <div className="form-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start' }}>
-          <div>
-            <div className="pill green" style={{ display: 'inline-flex', marginBottom: 12 }}>
-              Sync Status
-            </div>
-            <h3 style={{ marginTop: 0 }}>API Connection: Connected</h3>
-            <p style={{ color: 'var(--muted)', marginTop: 0 }}>
-              Configure your Shopify credentials and location mapping for inventory sync.
-            </p>
-          </div>
+    <div className="panel">
+      <div className="settings-layout">
+        {/* LEFT MENU */}
+        <div className="settings-sidebar-inner">
+          <button
+            className={`settings-tab-btn ${tab === 'general' ? 'active' : ''}`}
+            onClick={() => setTab('general')}
+          >
+            Algemeen
+          </button>
+
+          <button
+            className={`settings-tab-btn ${tab === 'locations' ? 'active' : ''}`}
+            onClick={() => setTab('locations')}
+          >
+            Sublocaties
+          </button>
+
+          <button
+            className={`settings-tab-btn ${tab === 'hours' ? 'active' : ''}`}
+            onClick={() => setTab('hours')}
+          >
+            Openingstijden
+          </button>
         </div>
 
-        <div className="inline-pills">
-          <div className="pill green">Live Sync Enabled</div>
-          <div className="pill">0.4s Latency</div>
-        </div>
-
-        <form onSubmit={save} style={{ marginTop: 24 }}>
-          <div className="field-grid-2">
-            <div className="field">
-              <label>Shopify Store URL</label>
-              <input
-                className="input"
-                name="shopify_store_url"
-                placeholder="your-store.myshopify.com"
-                value={form.shopify_store_url}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Admin Access Token</label>
-              <input
-                className="input"
-                type="password"
-                name="shopify_access_token"
-                value={form.shopify_access_token}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>Location ID</label>
-            <input
-              className="input"
-              name="shopify_location_id"
-              value={form.shopify_location_id}
-              onChange={handleChange}
-            />
-          </div>
-
+        {/* RIGHT CONTENT */}
+        <div className="settings-content">
           {message && (
-            <p style={{ color: 'var(--success)', fontWeight: 700, marginTop: 16 }}>{message}</p>
+            <p style={{ color: 'green', fontWeight: 700 }}>{message}</p>
           )}
 
           {error && <p className="error-text">{error}</p>}
 
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18 }}>
-            <button
-              className="secondary-btn"
-              type="button"
-              onClick={() =>
-                setForm({
-                  shopify_store_url: '',
-                  shopify_access_token: '',
-                  shopify_location_id: ''
-                })
-              }
-            >
-              Discard Changes
-            </button>
-            <button className="primary-btn" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Credentials'}
-            </button>
-          </div>
-        </form>
-      </div>
+          {/* GENERAL */}
+          {tab === 'general' && (
+            <div className="form-stack">
+              <div className="field">
+                <label>Naam</label>
+                <input
+                  className="input"
+                  value={profile.name || ''}
+                  onChange={(e) => updateField('name', e.target.value)}
+                />
+              </div>
 
-      <div className="sync-summary-card">
-        <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 12 }}>Sync Summary</div>
-        <div className="big-number">1,428</div>
-        <div style={{ marginTop: 8, opacity: 0.8 }}>Active SKU links</div>
+              <div className="field">
+                <label>Omschrijving</label>
+                <textarea
+                  className="input"
+                  rows="4"
+                  value={profile.description || ''}
+                  onChange={(e) =>
+                    updateField('description', e.target.value)
+                  }
+                />
+              </div>
 
-        <div className="inline-pills" style={{ marginTop: 20 }}>
-          <div className="pill">Uptime 99.98%</div>
-          <div className="pill">Connected</div>
+              <div className="field-grid-2">
+                <div className="field">
+                  <label>Adres</label>
+                  <input
+                    className="input"
+                    value={profile.address || ''}
+                    onChange={(e) => updateField('address', e.target.value)}
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Postcode</label>
+                  <input
+                    className="input"
+                    value={profile.postcode || ''}
+                    onChange={(e) => updateField('postcode', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="field-grid-2">
+                <div className="field">
+                  <label>Woonplaats</label>
+                  <input
+                    className="input"
+                    value={profile.city || ''}
+                    onChange={(e) => updateField('city', e.target.value)}
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Provincie</label>
+                  <input
+                    className="input"
+                    value={profile.province || ''}
+                    onChange={(e) => updateField('province', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="field-grid-2">
+                <div className="field">
+                  <label>Telefoon</label>
+                  <input
+                    className="input"
+                    value={profile.phone || ''}
+                    onChange={(e) => updateField('phone', e.target.value)}
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Website</label>
+                  <input
+                    className="input"
+                    value={profile.website || ''}
+                    onChange={(e) => updateField('website', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="field-grid-2">
+                <div className="field">
+                  <label>KvK</label>
+                  <input
+                    className="input"
+                    value={profile.kvk_number || ''}
+                    onChange={(e) =>
+                      updateField('kvk_number', e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="field">
+                  <label>IBAN</label>
+                  <input
+                    className="input"
+                    value={profile.iban_number || ''}
+                    onChange={(e) =>
+                      updateField('iban_number', e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+
+              <button className="primary-btn" onClick={saveProfile}>
+                Opslaan
+              </button>
+            </div>
+          )}
+
+          {/* LOCATIONS */}
+          {tab === 'locations' && (
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: 20
+                }}
+              >
+                <h3 style={{ margin: 0 }}>Sublocaties</h3>
+
+                <button
+                  className="primary-btn"
+                  onClick={addLocation}
+                >
+                  + Toevoegen
+                </button>
+              </div>
+
+              <div className="table-wrap">
+                <table className="inventory-table">
+                  <thead>
+                    <tr>
+                      <th>Naam</th>
+                      <th>Plaats</th>
+                      <th>Acties</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {locations.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.name}</td>
+                        <td>{item.city || '-'}</td>
+                        <td>
+                          {item.is_main ? (
+                            <span>Hoofdlocatie</span>
+                          ) : (
+                            <button
+                              className="table-btn"
+                              onClick={() =>
+                                removeLocation(item.id)
+                              }
+                            >
+                              Verwijderen
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* HOURS */}
+          {tab === 'hours' && (
+            <div className="form-stack">
+              {days.map((day, index) => {
+                const row = hours[index] || {};
+
+                return (
+                  <div
+                    key={day.id}
+                    className="field-grid-2"
+                  >
+                    <div className="field">
+                      <label>{day.label} van</label>
+                      <input
+                        type="time"
+                        className="input"
+                        value={row.open_time || '09:00'}
+                        onChange={(e) =>
+                          changeHour(
+                            index,
+                            'open_time',
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="field">
+                      <label>{day.label} tot</label>
+                      <input
+                        type="time"
+                        className="input"
+                        value={row.close_time || '18:00'}
+                        onChange={(e) =>
+                          changeHour(
+                            index,
+                            'close_time',
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+
+              <button
+                className="primary-btn"
+                onClick={saveHours}
+              >
+                Opslaan
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
