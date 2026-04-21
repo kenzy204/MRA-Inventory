@@ -26,13 +26,13 @@ import {
   LuShare2,
   LuStore
 } from 'react-icons/lu';
+
 import LoginPage from './pages/LoginPage';
 import BikesPage from './pages/BikesPage';
 import BikeCreatePage from './pages/BikeCreatePage';
 import BikeEditPage from './pages/BikeEditPage';
 import SettingsPage from './pages/SettingsPage';
 import SyncLogsPage from './pages/SyncLogsPage';
-
 import DashboardPage from './pages/DashboardPage';
 import AdministratiePage from './pages/AdministratiePage';
 import FietsverzekeringPage from './pages/FietsverzekeringPage';
@@ -40,6 +40,7 @@ import ChangePasswordPage from './pages/ChangePasswordPage';
 import SocialMediaPage from './pages/SocialMediaPage';
 import ClientCreatePage from './pages/ClientCreatePage';
 import ClientEditPage from './pages/ClientEditPage';
+import AccessoiresPage from './pages/AccessoiresPage';
 
 function ProtectedLayout() {
   const token = localStorage.getItem('token');
@@ -53,12 +54,25 @@ function ProtectedLayout() {
   }, [location.pathname]);
 
   const activeMenu = useMemo(() => {
-    if (location.pathname.startsWith('/fietsen')) return 'voertuigen';
+    if (
+      location.pathname.startsWith('/fietsen') ||
+      location.pathname.startsWith('/accessoires') ||
+      location.pathname.startsWith('/bikes')
+    ) {
+      return 'voertuigen';
+    }
+
     if (location.pathname.startsWith('/account')) return 'account';
-    if (location.pathname.startsWith('/social-media') || location.pathname.startsWith('/settings')) {
+
+    if (
+      location.pathname.startsWith('/social-media') ||
+      location.pathname.startsWith('/settings')
+    ) {
       return 'settings';
     }
+
     if (location.pathname.startsWith('/fietsverzekering')) return 'tools';
+
     return null;
   }, [location.pathname]);
 
@@ -93,6 +107,13 @@ function ProtectedLayout() {
       return {
         title: 'Fietsen',
         subtitle: 'Beheer je voorraad en premium e-bike collectie.'
+      };
+    }
+
+    if (location.pathname === '/accessoires') {
+      return {
+        title: 'Accessoires',
+        subtitle: 'Beheer accessoires en andere producten.'
       };
     }
 
@@ -174,178 +195,183 @@ function ProtectedLayout() {
           </div>
         </div>
 
-       <div className="nav-section">
-  <NavLink
-    to="/"
-    end
-    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-  >
-    <span className="nav-icon">
-      <LuLayoutDashboard />
-    </span>
-    <span>Dashboard</span>
-  </NavLink>
+        <div className="nav-section">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
+            <span className="nav-icon">
+              <LuLayoutDashboard />
+            </span>
+            <span>Dashboard</span>
+          </NavLink>
 
-  {/* Voertuigen */}
-  <button
-    className={`nav-group-btn ${openMenu === 'voertuigen' ? 'open' : ''}`}
-    onClick={() => toggleMenu('voertuigen')}
-    type="button"
-  >
-    <span className="nav-group-left">
-      <span className="nav-icon">
-        <LuCarFront />
-      </span>
-      <span>Voertuigen</span>
-    </span>
+          <button
+            className={`nav-group-btn ${openMenu === 'voertuigen' ? 'open' : ''}`}
+            onClick={() => toggleMenu('voertuigen')}
+            type="button"
+          >
+            <span className="nav-group-left">
+              <span className="nav-icon">
+                <LuCarFront />
+              </span>
+              <span>Voertuigen</span>
+            </span>
 
-    <span className="nav-caret">
-      {openMenu === 'voertuigen' ? <LuChevronDown /> : <LuChevronRight />}
-    </span>
-  </button>
+            <span className="nav-caret">
+              {openMenu === 'voertuigen' ? <LuChevronDown /> : <LuChevronRight />}
+            </span>
+          </button>
 
-  {openMenu === 'voertuigen' && (
-    <div className="submenu">
-      <NavLink
-        to="/fietsen"
-        className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
-      >
-        <span className="nav-icon">
-          <LuBike />
-        </span>
-        <span>Fietsen</span>
-      </NavLink>
-    </div>
-  )}
+          {openMenu === 'voertuigen' && (
+            <div className="submenu">
+              <NavLink
+                to="/fietsen"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">
+                  <LuBike />
+                </span>
+                <span>Fietsen</span>
+              </NavLink>
 
-  {/* Administratie */}
-  <NavLink
-    to="/administratie"
-    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-  >
-    <span className="nav-icon">
-      <LuFileText />
-    </span>
-    <span>Administratie</span>
-  </NavLink>
+              <NavLink
+                to="/accessoires"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">
+                  <LuBike />
+                </span>
+                <span>Accessoires</span>
+              </NavLink>
+            </div>
+          )}
 
-  {/* Tools */}
-  <button
-    className={`nav-group-btn ${openMenu === 'tools' ? 'open' : ''}`}
-    onClick={() => toggleMenu('tools')}
-    type="button"
-  >
-    <span className="nav-group-left">
-      <span className="nav-icon">
-        <LuWrench />
-      </span>
-      <span>Tools</span>
-    </span>
+          <NavLink
+            to="/administratie"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
+            <span className="nav-icon">
+              <LuFileText />
+            </span>
+            <span>Administratie</span>
+          </NavLink>
 
-    <span className="nav-caret">
-      {openMenu === 'tools' ? <LuChevronDown /> : <LuChevronRight />}
-    </span>
-  </button>
+          <button
+            className={`nav-group-btn ${openMenu === 'tools' ? 'open' : ''}`}
+            onClick={() => toggleMenu('tools')}
+            type="button"
+          >
+            <span className="nav-group-left">
+              <span className="nav-icon">
+                <LuWrench />
+              </span>
+              <span>Tools</span>
+            </span>
 
-  {openMenu === 'tools' && (
-    <div className="submenu">
-      <NavLink
-        to="/fietsverzekering"
-        className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
-      >
-        <span className="nav-icon">
-          <LuShield />
-        </span>
-        <span>Fietsverzekering</span>
-      </NavLink>
-    </div>
-  )}
+            <span className="nav-caret">
+              {openMenu === 'tools' ? <LuChevronDown /> : <LuChevronRight />}
+            </span>
+          </button>
 
-  {/* Mijn account */}
-  <button
-    className={`nav-group-btn ${openMenu === 'account' ? 'open' : ''}`}
-    onClick={() => toggleMenu('account')}
-    type="button"
-  >
-    <span className="nav-group-left">
-      <span className="nav-icon">
-        <LuUser />
-      </span>
-      <span>Mijn account</span>
-    </span>
+          {openMenu === 'tools' && (
+            <div className="submenu">
+              <NavLink
+                to="/fietsverzekering"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">
+                  <LuShield />
+                </span>
+                <span>Fietsverzekering</span>
+              </NavLink>
+            </div>
+          )}
 
-    <span className="nav-caret">
-      {openMenu === 'account' ? <LuChevronDown /> : <LuChevronRight />}
-    </span>
-  </button>
+          <button
+            className={`nav-group-btn ${openMenu === 'account' ? 'open' : ''}`}
+            onClick={() => toggleMenu('account')}
+            type="button"
+          >
+            <span className="nav-group-left">
+              <span className="nav-icon">
+                <LuUser />
+              </span>
+              <span>Mijn account</span>
+            </span>
 
-  {openMenu === 'account' && (
-    <div className="submenu">
-      <NavLink
-        to="/account/change-password"
-        className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
-      >
-        <span className="nav-icon">
-          <LuKeyRound />
-        </span>
-        <span>Wachtwoord wijzigen</span>
-      </NavLink>
-    </div>
-  )}
+            <span className="nav-caret">
+              {openMenu === 'account' ? <LuChevronDown /> : <LuChevronRight />}
+            </span>
+          </button>
 
-  {/* Instellingen */}
-  <button
-    className={`nav-group-btn ${openMenu === 'settings' ? 'open' : ''}`}
-    onClick={() => toggleMenu('settings')}
-    type="button"
-  >
-    <span className="nav-group-left">
-      <span className="nav-icon">
-        <LuSettings />
-      </span>
-      <span>Instellingen</span>
-    </span>
+          {openMenu === 'account' && (
+            <div className="submenu">
+              <NavLink
+                to="/account/change-password"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">
+                  <LuKeyRound />
+                </span>
+                <span>Wachtwoord wijzigen</span>
+              </NavLink>
+            </div>
+          )}
 
-    <span className="nav-caret">
-      {openMenu === 'settings' ? <LuChevronDown /> : <LuChevronRight />}
-    </span>
-  </button>
+          <button
+            className={`nav-group-btn ${openMenu === 'settings' ? 'open' : ''}`}
+            onClick={() => toggleMenu('settings')}
+            type="button"
+          >
+            <span className="nav-group-left">
+              <span className="nav-icon">
+                <LuSettings />
+              </span>
+              <span>Instellingen</span>
+            </span>
 
-  {openMenu === 'settings' && (
-    <div className="submenu">
-      <NavLink
-        to="/social-media"
-        className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
-      >
-        <span className="nav-icon">
-          <LuShare2 />
-        </span>
-        <span>Social media</span>
-      </NavLink>
+            <span className="nav-caret">
+              {openMenu === 'settings' ? <LuChevronDown /> : <LuChevronRight />}
+            </span>
+          </button>
 
-      <NavLink
-        to="/settings"
-        className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
-      >
-        <span className="nav-icon">
-          <LuStore />
-        </span>
-        <span>MRA E-Bike Center</span>
-      </NavLink>
-    </div>
-  )}
+          {openMenu === 'settings' && (
+            <div className="submenu">
+              <NavLink
+                to="/social-media"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">
+                  <LuShare2 />
+                </span>
+                <span>Social media</span>
+              </NavLink>
 
-  {/* Logs */}
-  <NavLink
-    to="/sync-logs"
-    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-  >
-    <span className="nav-icon">
-      <LuScrollText />
-    </span>
-    <span>Logs</span>
-  </NavLink>
-</div>
+              <NavLink
+                to="/settings"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">
+                  <LuStore />
+                </span>
+                <span>MRA E-Bike Center</span>
+              </NavLink>
+            </div>
+          )}
+
+          <NavLink
+            to="/sync-logs"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
+            <span className="nav-icon">
+              <LuScrollText />
+            </span>
+            <span>Logs</span>
+          </NavLink>
+        </div>
+
         <div className="sidebar-footer">
           <div className="sidebar-live-card">
             <div className="sidebar-live-title">Werkruimte</div>
@@ -384,7 +410,7 @@ function ProtectedLayout() {
           </div>
 
           <div className="topbar-right">
-            {['/', '/fietsen'].includes(location.pathname) && (
+            {['/', '/fietsen', '/accessoires'].includes(location.pathname) && (
               <button className="primary-btn" onClick={() => navigate('/bikes/new')}>
                 + Nieuwe fiets
               </button>
@@ -414,13 +440,15 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
 
           <Route path="/fietsen" element={<BikesPage />} />
+          <Route path="/accessoires" element={<AccessoiresPage />} />
           <Route path="/bikes/new" element={<BikeCreatePage />} />
           <Route path="/bikes/:id/edit" element={<BikeEditPage />} />
 
           <Route path="/administratie" element={<AdministratiePage />} />
           <Route path="/administratie/clients/new" element={<ClientCreatePage />} />
           <Route path="/administratie/clients/:id/edit" element={<ClientEditPage />} />
-         <Route path="/fietsverzekering" element={<FietsverzekeringPage />} />
+
+          <Route path="/fietsverzekering" element={<FietsverzekeringPage />} />
 
           <Route
             path="/account/change-password"
@@ -429,11 +457,8 @@ export default function App() {
 
           <Route path="/social-media" element={<SocialMediaPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-
           <Route path="/sync-logs" element={<SyncLogsPage />} />
         </Route>
-
-
       </Routes>
     </BrowserRouter>
   );
