@@ -80,29 +80,9 @@ export default function DashboardPage() {
     syncedCount,
     locations
   };
-}, [bikes]); {
-    const totalBikes = bikes.length;
-    const totalStock = bikes.reduce((sum, bike) => sum + Number(bike.stock || 0), 0);
+}, [bikes]);
 
-    const lowStockCount = bikes.filter((bike) => {
-      const stock = Number(bike.stock || 0);
-      return stock > 0 && stock <= 3;
-    }).length;
-
-    const outOfStockCount = bikes.filter((bike) => Number(bike.stock || 0) <= 0).length;
-    const syncErrorCount = bikes.filter((bike) => bike.sync_status === 'error').length;
-    const syncedCount = bikes.filter((bike) => bike.sync_status === 'success').length;
-
-    return {
-      totalBikes,
-      totalStock,
-      lowStockCount,
-      outOfStockCount,
-      syncErrorCount,
-      syncedCount
-    };
-  }, [bikes]);
-
+  
   const syncHealthLabel = useMemo(() => {
     if (stats.totalBikes === 0) return 'Geen data';
     if (stats.syncErrorCount === 0) return 'Gezond';
