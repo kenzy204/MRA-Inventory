@@ -27,6 +27,60 @@ export default function DashboardPage() {
   }, []);
 
   const stats = useMemo(() => {
+  const totalBikes = bikes.length;
+  const totalStock = bikes.reduce((sum, bike) => sum + Number(bike.stock || 0), 0);
+
+  const totalStockValue = bikes.reduce(
+    (sum, bike) => sum + Number(bike.price || 0) * Number(bike.stock || 0),
+    0
+  );
+
+  const lowStockCount = bikes.filter((bike) => {
+    const stock = Number(bike.stock || 0);
+    return stock > 0 && stock <= 3;
+  }).length;
+
+  const outOfStockCount = bikes.filter((bike) => Number(bike.stock || 0) <= 0).length;
+  const syncErrorCount = bikes.filter((bike) => bike.sync_status === 'error').length;
+  const syncedCount = bikes.filter((bike) => bike.sync_status === 'success').length;
+
+  const locations = {
+    beilen: { totalBikes: 0, totalStockValue: 0 },
+    zwolle: { totalBikes: 0, totalStockValue: 0 },
+    eindhoven: { totalBikes: 0, totalStockValue: 0 }
+  };
+
+  bikes.forEach((bike) => {
+    const tag = String(bike.tags || '').toLowerCase();
+    const stockValue = Number(bike.price || 0) * Number(bike.stock || 0);
+
+    if (tag.includes('beilen')) {
+      locations.beilen.totalBikes += 1;
+      locations.beilen.totalStockValue += stockValue;
+    }
+
+    if (tag.includes('zwolle')) {
+      locations.zwolle.totalBikes += 1;
+      locations.zwolle.totalStockValue += stockValue;
+    }
+
+    if (tag.includes('eindhoven')) {
+      locations.eindhoven.totalBikes += 1;
+      locations.eindhoven.totalStockValue += stockValue;
+    }
+  });
+
+  return {
+    totalBikes,
+    totalStock,
+    totalStockValue,
+    lowStockCount,
+    outOfStockCount,
+    syncErrorCount,
+    syncedCount,
+    locations
+  };
+}, [bikes]); {
     const totalBikes = bikes.length;
     const totalStock = bikes.reduce((sum, bike) => sum + Number(bike.stock || 0), 0);
 
@@ -96,10 +150,13 @@ if (loading) return <PageLoader label="Dashboard laden..." />;
           <div className="stat-value">{stats.totalBikes}</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-label">Totale voorraad</div>
-          <div className="stat-value">{stats.totalStock}</div>
-        </div>
+      <div className="stat-card">
+  <div className="stat-label">Totale voorraad</div>
+  <div className="stat-value">{stats.totalStock}</div>
+  <div style={{ marginTop: 10, color: 'var(--muted)' }}>
+    Waarde: €{stats.totalStockValue.toLocaleString()}
+  </div>
+</div>
 
         <div className="stat-card">
           <div className="stat-label">Lage voorraad</div>
@@ -111,7 +168,37 @@ if (loading) return <PageLoader label="Dashboard laden..." />;
           <div className="stat-value" style={{ fontSize: 28 }}>{syncHealthLabel}</div>
         </div>
       </div>
+<div className="panel">
+  <div className="dashboard-section-head">
+    <h3>Voorraad per locatie</h3>
+  </div>
 
+  <div className="card-grid">
+    <div className="stat-card">
+      <div className="stat-label">Beilen - Aantal fietsen</div>
+      <div className="stat-value">{stats.locations.beilen.totalBikes}</div>
+      <div style={{ marginTop: 10, color: 'var(--muted)' }}>
+        Voorraadwaarde: €{stats.locations.beilen.totalStockValue.toLocaleString()}
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-label">Zwolle - Aantal fietsen</div>
+      <div className="stat-value">{stats.locations.zwolle.totalBikes}</div>
+      <div style={{ marginTop: 10, color: 'var(--muted)' }}>
+        Voorraadwaarde: €{stats.locations.zwolle.totalStockValue.toLocaleString()}
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-label">Eindhoven - Aantal fietsen</div>
+      <div className="stat-value">{stats.locations.eindhoven.totalBikes}</div>
+      <div style={{ marginTop: 10, color: 'var(--muted)' }}>
+        Voorraadwaarde: €{stats.locations.eindhoven.totalStockValue.toLocaleString()}
+      </div>
+    </div>
+  </div>
+</div>
       <div className="dashboard-panels-simple">
         <div className="panel">
           <div className="dashboard-section-head">
