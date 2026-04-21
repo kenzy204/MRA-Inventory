@@ -1458,3 +1458,33 @@ button {
     grid-template-columns: 1fr;
   }
 }
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+}
+
+.settings-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-tab-btn {
+  border: 1px solid #ddd;
+  background: white;
+  padding: 14px;
+  text-align: left;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.settings-tab-btn.active {
+  background: #111827;
+  color: white;
+}
+
+.settings-content {
+  min-height: 500px;
+}
