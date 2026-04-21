@@ -14,6 +14,7 @@ const settingsRoutes = require('./routes/settingsRoutes');
 const syncRoutes = require('./routes/syncRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const clientRoutes = require('./routes/clientRoutes');
+const mraCenterRoutes = require('./routes/mraCenterRoutes');
 
 const app = express();
 
@@ -76,5 +77,6 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/clients', clientRoutes);
+app.use('/api/mra-center', mraCenterRoutes);
 
 module.exports = app;
