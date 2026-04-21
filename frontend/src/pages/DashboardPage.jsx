@@ -27,62 +27,72 @@ export default function DashboardPage() {
   }, []);
 
   const stats = useMemo(() => {
-  const totalBikes = bikes.length;
-  const totalStock = bikes.reduce((sum, bike) => sum + Number(bike.stock || 0), 0);
+    const totalBikes = bikes.length;
+    const totalStock = bikes.reduce(
+      (sum, bike) => sum + Number(bike.stock || 0),
+      0
+    );
 
-  const totalStockValue = bikes.reduce(
-    (sum, bike) => sum + Number(bike.price || 0) * Number(bike.stock || 0),
-    0
-  );
+    const totalStockValue = bikes.reduce(
+      (sum, bike) => sum + Number(bike.price || 0) * Number(bike.stock || 0),
+      0
+    );
 
-  const lowStockCount = bikes.filter((bike) => {
-    const stock = Number(bike.stock || 0);
-    return stock > 0 && stock <= 3;
-  }).length;
+    const lowStockCount = bikes.filter((bike) => {
+      const stock = Number(bike.stock || 0);
+      return stock > 0 && stock <= 3;
+    }).length;
 
-  const outOfStockCount = bikes.filter((bike) => Number(bike.stock || 0) <= 0).length;
-  const syncErrorCount = bikes.filter((bike) => bike.sync_status === 'error').length;
-  const syncedCount = bikes.filter((bike) => bike.sync_status === 'success').length;
+    const outOfStockCount = bikes.filter(
+      (bike) => Number(bike.stock || 0) <= 0
+    ).length;
 
-  const locations = {
-    beilen: { totalBikes: 0, totalStockValue: 0 },
-    zwolle: { totalBikes: 0, totalStockValue: 0 },
-    eindhoven: { totalBikes: 0, totalStockValue: 0 }
-  };
+    const syncErrorCount = bikes.filter(
+      (bike) => bike.sync_status === 'error'
+    ).length;
 
-  bikes.forEach((bike) => {
-    const tag = String(bike.tags || '').toLowerCase();
-    const stockValue = Number(bike.price || 0) * Number(bike.stock || 0);
+    const syncedCount = bikes.filter(
+      (bike) => bike.sync_status === 'success'
+    ).length;
 
-    if (tag.includes('beilen')) {
-      locations.beilen.totalBikes += 1;
-      locations.beilen.totalStockValue += stockValue;
-    }
+    const locations = {
+      beilen: { totalBikes: 0, totalStockValue: 0 },
+      zwolle: { totalBikes: 0, totalStockValue: 0 },
+      eindhoven: { totalBikes: 0, totalStockValue: 0 }
+    };
 
-    if (tag.includes('zwolle')) {
-      locations.zwolle.totalBikes += 1;
-      locations.zwolle.totalStockValue += stockValue;
-    }
+    bikes.forEach((bike) => {
+      const tag = String(bike.tags || '').toLowerCase();
+      const stockValue = Number(bike.price || 0) * Number(bike.stock || 0);
 
-    if (tag.includes('eindhoven')) {
-      locations.eindhoven.totalBikes += 1;
-      locations.eindhoven.totalStockValue += stockValue;
-    }
-  });
+      if (tag.includes('beilen')) {
+        locations.beilen.totalBikes += 1;
+        locations.beilen.totalStockValue += stockValue;
+      }
 
-  return {
-    totalBikes,
-    totalStock,
-    totalStockValue,
-    lowStockCount,
-    outOfStockCount,
-    syncErrorCount,
-    syncedCount,
-    locations
-  };
-}, [bikes]);
+      if (tag.includes('zwolle')) {
+        locations.zwolle.totalBikes += 1;
+        locations.zwolle.totalStockValue += stockValue;
+      }
 
-  
+      if (tag.includes('eindhoven')) {
+        locations.eindhoven.totalBikes += 1;
+        locations.eindhoven.totalStockValue += stockValue;
+      }
+    });
+
+    return {
+      totalBikes,
+      totalStock,
+      totalStockValue,
+      lowStockCount,
+      outOfStockCount,
+      syncErrorCount,
+      syncedCount,
+      locations
+    };
+  }, [bikes]);
+
   const syncHealthLabel = useMemo(() => {
     if (stats.totalBikes === 0) return 'Geen data';
     if (stats.syncErrorCount === 0) return 'Gezond';
@@ -90,10 +100,14 @@ export default function DashboardPage() {
     return 'Actie nodig';
   }, [stats]);
 
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(value || 0);
+  }
 
-
-
-if (loading) return <PageLoader label="Dashboard laden..." />;
+  if (loading) return <PageLoader label="Dashboard laden..." />;
 
   return (
     <div className="dashboard-grid">
@@ -130,13 +144,13 @@ if (loading) return <PageLoader label="Dashboard laden..." />;
           <div className="stat-value">{stats.totalBikes}</div>
         </div>
 
-      <div className="stat-card">
-  <div className="stat-label">Totale voorraad</div>
-  <div className="stat-value">{stats.totalStock}</div>
-  <div style={{ marginTop: 10, color: 'var(--muted)' }}>
-    Waarde: €{stats.totalStockValue.toLocaleString()}
-  </div>
-</div>
+        <div className="stat-card">
+          <div className="stat-label">Totale voorraad</div>
+          <div className="stat-value">{stats.totalStock}</div>
+          <div style={{ marginTop: 10, color: 'var(--muted)' }}>
+            Waarde: {formatCurrency(stats.totalStockValue)}
+          </div>
+        </div>
 
         <div className="stat-card">
           <div className="stat-label">Lage voorraad</div>
@@ -145,40 +159,62 @@ if (loading) return <PageLoader label="Dashboard laden..." />;
 
         <div className="stat-card dark">
           <div className="stat-label">Sync status</div>
-          <div className="stat-value" style={{ fontSize: 28 }}>{syncHealthLabel}</div>
+          <div className="stat-value" style={{ fontSize: 28 }}>
+            {syncHealthLabel}
+          </div>
         </div>
       </div>
-<div className="panel">
-  <div className="dashboard-section-head">
-    <h3>Voorraad per locatie</h3>
-  </div>
 
-  <div className="card-grid">
-    <div className="stat-card">
-      <div className="stat-label">Beilen - Aantal fietsen</div>
-      <div className="stat-value">{stats.locations.beilen.totalBikes}</div>
-      <div style={{ marginTop: 10, color: 'var(--muted)' }}>
-        Voorraadwaarde: €{stats.locations.beilen.totalStockValue.toLocaleString()}
-      </div>
-    </div>
+      <div className="panel">
+        <div className="dashboard-section-head">
+          <h3>Voertuigen per locatie</h3>
+        </div>
 
-    <div className="stat-card">
-      <div className="stat-label">Zwolle - Aantal fietsen</div>
-      <div className="stat-value">{stats.locations.zwolle.totalBikes}</div>
-      <div style={{ marginTop: 10, color: 'var(--muted)' }}>
-        Voorraadwaarde: €{stats.locations.zwolle.totalStockValue.toLocaleString()}
-      </div>
-    </div>
+        <div className="table-wrap">
+          <table className="inventory-table">
+            <thead>
+              <tr>
+                <th>Locatie</th>
+                <th>Aantal</th>
+                <th>Waarde</th>
+              </tr>
+            </thead>
 
-    <div className="stat-card">
-      <div className="stat-label">Eindhoven - Aantal fietsen</div>
-      <div className="stat-value">{stats.locations.eindhoven.totalBikes}</div>
-      <div style={{ marginTop: 10, color: 'var(--muted)' }}>
-        Voorraadwaarde: €{stats.locations.eindhoven.totalStockValue.toLocaleString()}
+            <tbody>
+              <tr>
+                <td>Beilen</td>
+                <td className="value-strong">{stats.locations.beilen.totalBikes}</td>
+                <td className="value-strong">
+                  {formatCurrency(stats.locations.beilen.totalStockValue)}
+                </td>
+              </tr>
+
+              <tr>
+                <td>Zwolle</td>
+                <td className="value-strong">{stats.locations.zwolle.totalBikes}</td>
+                <td className="value-strong">
+                  {formatCurrency(stats.locations.zwolle.totalStockValue)}
+                </td>
+              </tr>
+
+              <tr>
+                <td>Eindhoven</td>
+                <td className="value-strong">{stats.locations.eindhoven.totalBikes}</td>
+                <td className="value-strong">
+                  {formatCurrency(stats.locations.eindhoven.totalStockValue)}
+                </td>
+              </tr>
+
+              <tr>
+                <td className="value-strong">Totaal</td>
+                <td className="value-strong">{stats.totalBikes}</td>
+                <td className="value-strong">{formatCurrency(stats.totalStockValue)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
+
       <div className="dashboard-panels-simple">
         <div className="panel">
           <div className="dashboard-section-head">
