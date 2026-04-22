@@ -32,6 +32,7 @@ import BikesPage from './pages/BikesPage';
 import BikeCreatePage from './pages/BikeCreatePage';
 import BikeEditPage from './pages/BikeEditPage';
 import SettingsPage from './pages/SettingsPage';
+import ShopifyConnectionPage from './pages/ShopifyConnectionPage';
 import SyncLogsPage from './pages/SyncLogsPage';
 import DashboardPage from './pages/DashboardPage';
 import AdministratiePage from './pages/AdministratiePage';
@@ -62,16 +63,21 @@ function ProtectedLayout() {
       return 'voertuigen';
     }
 
-    if (location.pathname.startsWith('/account')) return 'account';
+    if (location.pathname.startsWith('/account')) {
+      return 'account';
+    }
 
     if (
       location.pathname.startsWith('/social-media') ||
-      location.pathname.startsWith('/settings')
+      location.pathname.startsWith('/settings') ||
+      location.pathname.startsWith('/shopify-connection')
     ) {
       return 'settings';
     }
 
-    if (location.pathname.startsWith('/fietsverzekering')) return 'tools';
+    if (location.pathname.startsWith('/fietsverzekering')) {
+      return 'tools';
+    }
 
     return null;
   }, [location.pathname]);
@@ -148,7 +154,14 @@ function ProtectedLayout() {
     if (location.pathname === '/settings') {
       return {
         title: 'MRA E-Bike Center',
-        subtitle: 'Beheer winkelkoppeling en instellingen.'
+        subtitle: 'Beheer algemene gegevens, sublocaties en openingstijden.'
+      };
+    }
+
+    if (location.pathname === '/shopify-connection') {
+      return {
+        title: 'Shopify koppeling',
+        subtitle: 'Beheer Shopify winkelkoppeling en API-instellingen.'
       };
     }
 
@@ -358,6 +371,16 @@ function ProtectedLayout() {
                 </span>
                 <span>MRA E-Bike Center</span>
               </NavLink>
+
+              <NavLink
+                to="/shopify-connection"
+                className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">
+                  <LuStore />
+                </span>
+                <span>Shopify koppeling</span>
+              </NavLink>
             </div>
           )}
 
@@ -457,6 +480,7 @@ export default function App() {
 
           <Route path="/social-media" element={<SocialMediaPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/shopify-connection" element={<ShopifyConnectionPage />} />
           <Route path="/sync-logs" element={<SyncLogsPage />} />
         </Route>
       </Routes>
