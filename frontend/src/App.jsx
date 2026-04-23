@@ -26,6 +26,10 @@ import {
   LuShare2,
   LuStore
 } from 'react-icons/lu';
+import {
+  LuClipboardCheck,
+  LuExternalLink
+} from 'react-icons/lu';
 
 import LoginPage from './pages/LoginPage';
 import BikesPage from './pages/BikesPage';
@@ -42,6 +46,9 @@ import SocialMediaPage from './pages/SocialMediaPage';
 import ClientCreatePage from './pages/ClientCreatePage';
 import ClientEditPage from './pages/ClientEditPage';
 import AccessoiresPage from './pages/AccessoiresPage';
+import RdwLandingPage from './pages/RdwLandingPage';
+import ExternalLinkPage from './pages/ExternalLinkPage';
+
 
 function ProtectedLayout() {
   const token = localStorage.getItem('token');
@@ -79,6 +86,9 @@ function ProtectedLayout() {
       return 'tools';
     }
 
+    if (location.pathname.startsWith('/rdw')) {
+  return 'rdw';
+}
     return null;
   }, [location.pathname]);
 
@@ -220,6 +230,141 @@ function ProtectedLayout() {
             <span>Dashboard</span>
           </NavLink>
 
+
+
+
+          <button
+  className={`nav-group-btn ${openMenu === 'rdw' ? 'open' : ''}`}
+  onClick={() => toggleMenu('rdw')}
+  type="button"
+>
+  <span className="nav-group-left">
+    <span className="nav-icon">
+      <LuClipboardCheck />
+    </span>
+    <span>RDW-Diensten</span>
+  </span>
+
+  <span className="nav-caret">
+    {openMenu === 'rdw' ? <LuChevronDown /> : <LuChevronRight />}
+  </span>
+</button>
+
+{openMenu === 'rdw' && (
+  <div className="submenu">
+
+    <NavLink
+      to="/rdw/bedrijfsvoorraad"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      Bedrijfsvoorraad
+    </NavLink>
+
+    <NavLink
+      to="/rdw/orv"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      ORV
+    </NavLink>
+
+    <NavLink
+      to="/rdw/orv-b2b"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      ORV B2B
+    </NavLink>
+
+    <NavLink
+      to="/rdw/okr"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      OKR
+    </NavLink>
+
+    <NavLink
+      to="/rdw/machtigen"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      Machtigen
+    </NavLink>
+
+    <NavLink
+      to="/rdw/tv"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      TV
+    </NavLink>
+
+    <NavLink
+      to="/rdw/tda"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      TDA
+    </NavLink>
+
+    <NavLink
+      to="/rdw/ott"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      OTT
+    </NavLink>
+
+    <NavLink
+      to="/rdw/historie"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      Historie
+    </NavLink>
+
+    <NavLink
+      to="/rdw/chassisnummer-opvragen"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      Chassisnummer opvragen
+    </NavLink>
+
+    <NavLink
+      to="/rdw/rijbewijsnummer-controleren"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      Rijbewijsnummer controleren
+    </NavLink>
+
+    <NavLink
+      to="/rdw/kentekencard-controleren"
+      className={({ isActive }) =>
+        `nav-sublink ${isActive ? 'active' : ''}`
+      }
+    >
+      Kentekencard controleren
+    </NavLink>
+
+  </div>
+)}
+
+          
           <button
             className={`nav-group-btn ${openMenu === 'voertuigen' ? 'open' : ''}`}
             onClick={() => toggleMenu('voertuigen')}
@@ -461,7 +606,8 @@ export default function App() {
 
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<DashboardPage />} />
-
+          <Route path="/rdw/:page" element={<RdwLandingPage />} />
+          
           <Route path="/fietsen" element={<BikesPage />} />
           <Route path="/accessoires" element={<AccessoiresPage />} />
           <Route path="/bikes/new" element={<BikeCreatePage />} />
