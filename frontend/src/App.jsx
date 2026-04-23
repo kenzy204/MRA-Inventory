@@ -47,7 +47,6 @@ import ClientCreatePage from './pages/ClientCreatePage';
 import ClientEditPage from './pages/ClientEditPage';
 import AccessoiresPage from './pages/AccessoiresPage';
 import RdwLandingPage from './pages/RdwLandingPage';
-import ExternalLinkPage from './pages/ExternalLinkPage';
 
 
 function ProtectedLayout() {
