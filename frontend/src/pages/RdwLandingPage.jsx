@@ -15,7 +15,7 @@ export default function RdwLandingPage() {
   const link = externalPages[page];
 
   if (link && link !== 'PUT-YOUR-LINK-HERE') {
-    window.location.href = link;
+    window.open(link, '_blank', 'noopener,noreferrer');
     return null;
   }
 
