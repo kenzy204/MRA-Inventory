@@ -1488,3 +1488,155 @@ button {
 .settings-content {
   min-height: 500px;
 }
+.fotosticker-layout {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 22px;
+}
+
+.fotosticker-sidebar {
+  border-right: 1px solid var(--border);
+  padding-right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fotosticker-category {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.fotosticker-category:hover {
+  background: var(--bg-soft);
+  color: var(--primary);
+}
+
+.fotosticker-category.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.fotosticker-content {
+  min-width: 0;
+}
+
+.fotosticker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.fotosticker-card {
+  background: #fffefc;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px;
+  min-height: 260px;
+}
+
+.fotosticker-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.fotosticker-card h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.fotosticker-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.fotosticker-preview {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-soft);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.fotosticker-preview img {
+  max-width: 100%;
+  max-height: 130px;
+  object-fit: contain;
+}
+
+.fotosticker-empty {
+  padding: 24px;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 16, 0.45);
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.fotosticker-modal {
+  width: 100%;
+  max-width: 560px;
+  background: white;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: var(--shadow-md);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.modal-head h3 {
+  margin: 0;
+}
+
+.modal-head button {
+  border: 0;
+  background: transparent;
+  font-size: 28px;
+}
+
+@media (max-width: 1100px) {
+  .fotosticker-grid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .fotosticker-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fotosticker-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding-right: 0;
+    padding-bottom: 12px;
+  }
+
+  .fotosticker-grid {
+    grid-template-columns: 1fr;
+  }
+}
