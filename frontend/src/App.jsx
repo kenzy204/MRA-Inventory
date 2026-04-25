@@ -47,7 +47,7 @@ import ClientCreatePage from './pages/ClientCreatePage';
 import ClientEditPage from './pages/ClientEditPage';
 import AccessoiresPage from './pages/AccessoiresPage';
 import RdwLandingPage from './pages/RdwLandingPage';
-
+import FotostickersPage from './pages/FotostickersPage';
 
 function ProtectedLayout() {
   const token = localStorage.getItem('token');
@@ -159,6 +159,13 @@ function ProtectedLayout() {
         subtitle: 'Beheer je social media links en kanalen.'
       };
     }
+
+    if (location.pathname === '/fotostickers') {
+  return {
+    title: 'Fotostickers',
+    subtitle: 'Beheer fotostickers voor MRA E-Bike Center.'
+  };
+}
 
     if (location.pathname === '/settings') {
       return {
@@ -506,6 +513,18 @@ function ProtectedLayout() {
                 <span>Social media</span>
               </NavLink>
 
+
+              <NavLink
+  to="/fotostickers"
+  className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
+>
+  <span className="nav-icon">
+    <LuStore />
+  </span>
+  <span>Fotostickers</span>
+</NavLink>
+
+              
               <NavLink
                 to="/settings"
                 className={({ isActive }) => `nav-sublink ${isActive ? 'active' : ''}`}
@@ -617,6 +636,9 @@ export default function App() {
           <Route path="/administratie/clients/:id/edit" element={<ClientEditPage />} />
 
           <Route path="/fietsverzekering" element={<FietsverzekeringPage />} />
+
+
+          <Route path="/fotostickers" element={<FotostickersPage />} />
 
           <Route
             path="/account/change-password"
