@@ -15,6 +15,7 @@ const syncRoutes = require('./routes/syncRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const mraCenterRoutes = require('./routes/mraCenterRoutes');
+const photoStickerRoutes = require('./routes/photoStickerRoutes');
 
 const app = express();
 
@@ -78,5 +79,6 @@ app.use('/api/sync', syncRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/mra-center', mraCenterRoutes);
+app.use('/api/photo-stickers', photoStickerRoutes);
 
 module.exports = app;
